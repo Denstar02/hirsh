@@ -1,0 +1,3192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Трекер индекса Хирша: публикации, цитирующие работы и план роста h">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Трекер индекса Хирша</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap">
+<style>
+/* Layout: a lab notebook on millimetre paper — header strip, the h figure with the next step,
+   the Hirsch square drawn cell-by-cell (1 cell = 1 citation), then data tabs.
+   Palette: graph-paper greens + the editor's two-coloured pencil (blue = есть, red = не хватает). */
+:root {
+  --paper: #F2F5F4;
+  --sheet: #FFFFFF;
+  --ink: #17202A;
+  --ink-2: #485664;
+  --ink-3: #6F7D8A;
+  --rule: #D9E1DF;
+  --grid: #E3EEEA;
+  --grid-major: #C3DCD3;
+  --blue: #2E4FC7;
+  --blue-ink: #2440A8;
+  --blue-wash: #E9EDFB;
+  --blue-soft: #9AA9C9;
+  --red: #CC2936;
+  --red-ink: #B0202C;
+  --red-wash: #FBEAEB;
+  --sq-fill: rgba(46, 79, 199, 0.07);
+  --on-accent: #FFFFFF;
+  --shadow: 0 1px 2px rgba(23, 32, 42, 0.06), 0 6px 24px rgba(23, 32, 42, 0.06);
+  --font-display: "Old Standard TT", "PT Serif", Georgia, "Times New Roman", serif;
+  --font-ui: "Golos Text", "PT Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-data: "PT Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1418; --sheet: #161C21; --ink: #E6EBEE; --ink-2: #B0BBC4; --ink-3: #8592A0;
+    --rule: #28323B; --grid: #1C2629; --grid-major: #2A3B3B;
+    --blue: #6482F2; --blue-ink: #9BB0FF; --blue-wash: #1D2645; --blue-soft: #4C5A78;
+    --red: #EC5A64; --red-ink: #FF8B93; --red-wash: #3A1D22;
+    --sq-fill: rgba(100, 130, 242, 0.10); --on-accent: #0F1418;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 24px rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1418; --sheet: #161C21; --ink: #E6EBEE; --ink-2: #B0BBC4; --ink-3: #8592A0;
+  --rule: #28323B; --grid: #1C2629; --grid-major: #2A3B3B;
+  --blue: #6482F2; --blue-ink: #9BB0FF; --blue-wash: #1D2645; --blue-soft: #4C5A78;
+  --red: #EC5A64; --red-ink: #FF8B93; --red-wash: #3A1D22;
+  --sq-fill: rgba(100, 130, 242, 0.10); --on-accent: #0F1418;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 24px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--font-ui); }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--blue-ink); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 56px; }
+.var { font-family: var(--font-display); font-style: italic; font-weight: 400; letter-spacing: 0; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-3); }
+.small { font-size: 13px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.15; }
+h3 { font-size: 15px; font-weight: 600; }
+.eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 3px; }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+.brand { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+.brand-mark { width: 34px; height: 34px; flex: none; }
+.brand h1 { font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.1; }
+.brand p { margin: 2px 0 0; font-size: 13px; color: var(--ink-3); }
+.profile-box { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.profile-box select { max-width: 260px; }
+.save-state { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+.save-state .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.save-state[data-s="account"] .dot { background: var(--blue); }
+.save-state[data-s="saving"] .dot, .save-state[data-s="pending"] .dot { background: var(--ink-3); animation: pulse 1s infinite alternate; }
+.save-state[data-s="error"] { color: var(--red-ink); }
+.save-state[data-s="error"] .dot { background: var(--red); }
+@keyframes pulse { from { opacity: .35 } to { opacity: 1 } }
+
+/* tabs */
+.tabs { display: flex; gap: 4px; margin: 14px 0 18px; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { appearance: none; border: 0; background: none; padding: 8px 12px 9px; border-radius: var(--r); cursor: pointer; color: var(--ink-2); font-weight: 500; white-space: nowrap; position: relative; }
+.tab:hover { background: var(--sheet); color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); background: var(--sheet); box-shadow: inset 0 -2px 0 var(--blue); }
+.tab .count { font-family: var(--font-data); font-size: 12px; color: var(--ink-3); margin-left: 4px; }
+
+/* controls */
+.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 6px 14px; border-radius: var(--r); border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); cursor: pointer; font-weight: 500; text-decoration: none; line-height: 1.2; }
+.btn:hover { border-color: var(--ink-3); }
+.btn.primary { background: var(--blue); border-color: var(--blue); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--red-ink); }
+.btn.danger:hover { border-color: var(--red); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
+.btn.ghost:hover { background: var(--paper); color: var(--ink); }
+.btn.sm { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.icon { width: 16px; height: 16px; flex: none; }
+input[type="text"], input[type="number"], input[type="search"], input[type="date"], select, textarea {
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); padding: 7px 10px; min-height: 36px; min-width: 0;
+}
+textarea { width: 100%; min-height: 160px; resize: vertical; line-height: 1.45; }
+input:focus, select:focus, textarea:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px var(--blue-wash); }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--ink-2); }
+.field > span:first-child { font-weight: 500; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: var(--r); background: var(--sheet); padding: 2px; gap: 2px; }
+.seg button { appearance: none; border: 0; background: transparent; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--blue-wash); color: var(--blue-ink); font-weight: 600; }
+
+/* banner */
+.banner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 14px; margin-bottom: 18px; background: var(--blue-wash); border: 1px solid var(--rule); border-radius: var(--r); }
+.banner p { margin: 0; flex: 1 1 320px; min-width: 0; }
+.banner.warn { background: var(--red-wash); }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 18px; align-items: stretch; }
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); padding: 18px 20px; min-width: 0; }
+.figure-row { display: flex; align-items: baseline; gap: 14px; margin: 6px 0 4px; }
+.figure { font-size: clamp(72px, 11vw, 118px); line-height: .92; font-weight: 700; letter-spacing: -0.02em; }
+.figure-eq { font-family: var(--font-display); font-style: italic; font-size: clamp(34px, 5vw, 50px); color: var(--ink-2); }
+.figure-delta { font-size: 14px; color: var(--ink-2); }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 13.5px; color: var(--ink-2); }
+.stats b { color: var(--ink); font-weight: 600; }
+.basis { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--ink-3); }
+.next h3 { font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1.2; }
+.next .lede { margin: 6px 0 12px; color: var(--ink-2); }
+.need-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.need-list li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.need-list .t { min-width: 0; overflow-wrap: anywhere; }
+.rank { font-family: var(--font-data); font-size: 12.5px; color: var(--ink-3); min-width: 2.2em; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; font-family: var(--font-data); }
+.pill.need { background: var(--red-wash); color: var(--red-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--red) 35%, transparent); }
+.pill.ok { background: var(--blue-wash); color: var(--blue-ink); }
+.pill.self { background: var(--paper); color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--rule); font-family: var(--font-ui); font-weight: 500; }
+.pill.alt { background: var(--paper); color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--rule); font-family: var(--font-ui); font-weight: 500; }
+.pill.pend { background: var(--blue-wash); color: var(--blue-ink); border: 1px dashed var(--blue); font-family: var(--font-ui); font-weight: 500; font-size: 12px; padding: 0 7px; vertical-align: 1px; }
+.mini { display: inline-block; margin-left: 4px; padding: 0 4px; border-radius: 3px; font-size: 12px; line-height: 1.5; }
+.mini.pend { color: var(--blue-ink); border: 1px dashed var(--blue); background: var(--blue-wash); }
+.mini.sim { color: var(--ink-2); border: 1px dotted var(--ink-2); }
+.forecast { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 10px 0 6px; font-size: 14px; color: var(--ink-2); }
+.fc-badge { display: inline-flex; align-items: baseline; padding: 2px 10px 3px; border: 1.5px dashed var(--blue); border-radius: var(--r); background: var(--blue-wash); color: var(--blue-ink); font-weight: 700; font-size: 20px; line-height: 1.2; }
+.fc-badge .var { font-size: 22px; }
+.item.pending { border-style: dashed; border-color: var(--blue); }
+
+/* chart */
+.chart-panel { margin-top: 18px; }
+.chart-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; justify-content: space-between; }
+.chart-head p { margin: 4px 0 0; color: var(--ink-2); max-width: 62ch; }
+.targets { display: flex; flex-wrap: wrap; gap: 6px; }
+.tchip { appearance: none; border: 1px solid var(--rule); background: var(--sheet); border-radius: var(--r); padding: 6px 10px; cursor: pointer; text-align: left; min-width: 76px; }
+.tchip .k { display: block; font-size: 14px; white-space: nowrap; }
+.tchip .v { display: block; font-family: var(--font-data); font-size: 12px; color: var(--ink-3); }
+.tchip[aria-pressed="true"] { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+.tchip[aria-pressed="true"] .v { color: var(--red-ink); }
+.chart-grid { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 18px 28px; margin-top: 14px; align-items: start; }
+.chart-col { min-width: 0; }
+.side-col { display: grid; gap: 12px; align-content: start; padding-left: 20px; border-left: 1px solid var(--rule); }
+.side-col .targets { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.side-col .tchip { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; width: 100%; }
+.side-col .legend { display: grid; gap: 8px; margin-top: 4px; }
+.chart-scroll { overflow-x: auto; }
+.chart-scroll svg { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 14px; height: 14px; border-radius: 2px; flex: none; }
+.chart-note { margin-top: 8px; font-size: 13px; color: var(--ink-3); }
+.hit { fill: transparent; cursor: pointer; outline: none; }
+.hit:hover, .hit:focus-visible { fill: var(--ink); fill-opacity: 0.06; }
+.hit:focus-visible { stroke: var(--blue); stroke-width: 1.5; }
+.tip { position: fixed; z-index: 30; pointer-events: none; max-width: 300px; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--r); box-shadow: var(--shadow); padding: 9px 11px; font-size: 13px; }
+.tip .v { font-size: 15px; font-weight: 700; }
+.tip .t { color: var(--ink-2); margin-top: 2px; }
+
+/* plan table + generic tables */
+.section { margin-top: 18px; }
+.section-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 10px; }
+.table-scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.tbl td { padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl td.n, .tbl th.n { text-align: right; }
+.tbl .ttl { min-width: 220px; overflow-wrap: anywhere; }
+.tbl tr.core td:first-child { box-shadow: inset 3px 0 0 var(--blue); }
+.tbl tr.target td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+.tbl tr.flash td { background: var(--blue-wash); }
+.sub { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: var(--r); background: var(--sheet); }
+.stepper button { appearance: none; border: 0; background: transparent; width: 30px; height: 30px; cursor: pointer; color: var(--ink-2); font-size: 16px; line-height: 1; }
+.stepper button:hover { color: var(--blue-ink); }
+.stepper output { min-width: 2.2em; text-align: center; font-family: var(--font-data); font-size: 13px; }
+.sim-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 12px; margin-bottom: 10px; border: 1px dashed var(--blue); border-radius: var(--r); background: var(--blue-wash); font-size: 14px; }
+.ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 12px; }
+
+/* lists */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.toolbar input[type="search"] { flex: 1 1 220px; }
+.items { display: grid; gap: 8px; }
+.item { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; min-width: 0; }
+.item-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; }
+.item-title { font-weight: 500; overflow-wrap: anywhere; }
+.item-meta { font-size: 13px; color: var(--ink-3); margin-top: 3px; overflow-wrap: anywhere; }
+.item-side { display: grid; justify-items: end; gap: 6px; text-align: right; }
+.big-count { font-family: var(--font-data); font-size: 22px; line-height: 1; }
+.item-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.manual { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-3); }
+.manual input { width: 76px; min-height: 30px; padding: 3px 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 2px 4px 2px 10px; border-radius: 999px; background: var(--paper); border: 1px solid var(--rule); font-size: 12.5px; color: var(--ink-2); }
+.chip .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 44ch; }
+.chip button { appearance: none; border: 0; background: transparent; cursor: pointer; color: var(--ink-3); width: 22px; height: 22px; border-radius: 50%; }
+.chip button:hover { background: var(--sheet); color: var(--red-ink); }
+.nested { margin-top: 10px; padding: 8px 0 0 12px; border-left: 2px solid var(--rule); display: grid; gap: 6px; font-size: 13.5px; }
+.nested .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.empty { text-align: center; padding: 36px 16px; color: var(--ink-2); background: var(--sheet); border: 1px dashed var(--rule); border-radius: var(--r); }
+.empty h3 { font-family: var(--font-display); font-size: 21px; margin-bottom: 6px; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+
+/* history */
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+
+/* help */
+.prose { max-width: 70ch; }
+.prose h2 { margin: 26px 0 8px; }
+.prose h3 { margin: 18px 0 6px; font-size: 16px; }
+.prose p, .prose li { color: var(--ink-2); }
+.prose li { margin: 4px 0; }
+.formula { font-family: var(--font-display); font-size: 20px; padding: 12px 16px; background: var(--sheet); border-left: 3px solid var(--blue); margin: 12px 0; color: var(--ink); }
+
+/* dialogs */
+dialog { border: 0; padding: 0; border-radius: 8px; background: var(--sheet); color: var(--ink); width: min(880px, calc(100vw - 24px)); max-height: calc(100vh - 32px); box-shadow: var(--shadow); }
+dialog.narrow { width: min(560px, calc(100vw - 24px)); }
+dialog::backdrop { background: rgba(10, 16, 22, 0.45); }
+.dlg { display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid var(--rule); }
+.dlg-head h2 { font-size: 22px; }
+.dlg-body { padding: 16px 20px; overflow: auto; display: grid; gap: 14px; }
+.dlg-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--rule); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.drop { display: grid; place-items: center; gap: 6px; padding: 18px; border: 1.5px dashed var(--grid-major); border-radius: var(--r); text-align: center; color: var(--ink-2); background: var(--paper); cursor: pointer; }
+.drop.over { border-color: var(--blue); background: var(--blue-wash); }
+.preview td input[type="text"] { width: 100%; min-height: 30px; padding: 3px 7px; }
+.preview td input[type="number"] { width: 70px; min-height: 30px; padding: 3px 7px; }
+.preview td select { min-height: 30px; padding: 2px 6px; max-width: 260px; }
+.preview tr.dup td { color: var(--ink-3); }
+.note { font-size: 13px; color: var(--ink-2); background: var(--paper); border-radius: var(--r); padding: 10px 12px; }
+.err { color: var(--red-ink); font-size: 13px; }
+.checklist { display: grid; gap: 6px; max-height: 260px; overflow: auto; padding: 4px; border: 1px solid var(--rule); border-radius: var(--r); }
+.checklist label { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: start; font-size: 13.5px; cursor: pointer; }
+
+/* toast */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 32px); padding: 10px 12px 10px 16px; background: var(--ink); color: var(--paper); border-radius: var(--r); box-shadow: var(--shadow); font-size: 14px; }
+.toast .btn { min-height: 30px; background: transparent; color: var(--paper); border-color: color-mix(in srgb, var(--paper) 40%, transparent); }
+
+@media (max-width: 820px) {
+  .hero, .two, .chart-grid { grid-template-columns: minmax(0, 1fr); }
+  .side-col { padding-left: 0; border-left: 0; padding-top: 14px; border-top: 1px solid var(--rule); }
+  .side-col .targets { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .side-col .tchip { flex-direction: column; gap: 0; }
+  .side-col .legend { display: flex; }
+}
+@media (max-width: 560px) {
+  .brand h1 { font-size: 20px; }
+  .panel { padding: 14px; }
+  .item-main { grid-template-columns: minmax(0, 1fr); }
+  .item-side { justify-items: start; text-align: left; grid-auto-flow: column; align-items: center; }
+  .tbl .ttl { min-width: 140px; }
+  .tbl th, .tbl td { padding-left: 6px; padding-right: 6px; }
+  .tbl .sub { display: none; }
+  .profile-box select { max-width: 200px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 34 34" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="33" height="33" rx="4" style="fill:var(--sheet);stroke:var(--rule)"/>
+        <path d="M7 4v26M12 4v26M17 4v26M22 4v26M27 4v26M4 7h26M4 12h26M4 17h26M4 22h26M4 27h26" style="stroke:var(--grid-major);stroke-width:.8"/>
+        <rect x="7" y="12" width="15" height="15" style="fill:var(--blue);opacity:.9"/>
+        <rect x="7" y="7" width="20" height="20" style="fill:none;stroke:var(--red);stroke-width:1.4;stroke-dasharray:2.4 1.8"/>
+        <path d="M7 27L29 5" style="stroke:var(--ink-3);stroke-width:1"/>
+      </svg>
+      <div>
+        <h1>Трекер индекса Хирша</h1>
+        <p>Какие публикации поднять, чтобы <span class="var">h</span> вырос</p>
+      </div>
+    </div>
+    <div class="profile-box">
+      <label class="sr" for="profileSel">Профиль</label>
+      <select id="profileSel"></select>
+      <button class="btn sm" id="profileBtn" type="button">Профиль и данные</button>
+      <span class="save-state" id="saveState" data-s="pending" role="status"><span class="dot"></span><span id="saveText">Загружаю сохранённые данные…</span></span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Разделы">
+    <button class="tab" role="tab" data-tab="analysis" id="tab-analysis" aria-controls="view-analysis">Анализ</button>
+    <button class="tab" role="tab" data-tab="pubs" id="tab-pubs" aria-controls="view-pubs">Мои публикации <span class="count" id="cntPubs"></span></button>
+    <button class="tab" role="tab" data-tab="cites" id="tab-cites" aria-controls="view-cites">Цитирующие работы <span class="count" id="cntCites"></span></button>
+    <button class="tab" role="tab" data-tab="history" id="tab-history" aria-controls="view-history">История</button>
+    <button class="tab" role="tab" data-tab="help" id="tab-help" aria-controls="view-help">Справка</button>
+  </nav>
+
+  <div id="bannerSlot"></div>
+
+  <main>
+    <section id="view-analysis" role="tabpanel" aria-labelledby="tab-analysis"></section>
+    <section id="view-pubs" role="tabpanel" aria-labelledby="tab-pubs" hidden></section>
+    <section id="view-cites" role="tabpanel" aria-labelledby="tab-cites" hidden></section>
+    <section id="view-history" role="tabpanel" aria-labelledby="tab-history" hidden></section>
+    <section id="view-help" role="tabpanel" aria-labelledby="tab-help" hidden>
+      <div class="prose">
+        <h2>Как считается индекс Хирша</h2>
+        <div class="formula"><span class="var">h</span> — наибольшее число публикаций автора, каждая из которых процитирована не менее <span class="var">h</span> раз</div>
+        <p>Показатель предложил физик Хорхе Хирш в 2005 году (J. E. Hirsch, PNAS). На диаграмме «Квадрат Хирша» публикации выстроены по убыванию цитирований, и каждая клетка — одно цитирование. Индекс равен стороне самого большого квадрата, который помещается под столбиками; угол квадрата лежит на диагонали.</p>
+
+        <h3>Как строится план роста</h3>
+        <p>Чтобы получить <span class="var">h</span> + 1, нужно <span class="var">h</span> + 1 публикаций, у каждой из которых не меньше <span class="var">h</span> + 1 цитирований. Дешевле всего добирать цитирования самым цитируемым статьям, поэтому трекер берёт первые <span class="var">h</span> + 1 по рангу и считает, сколько не хватает каждой.</p>
+        <ul>
+          <li>Статьи из ядра, у которых ровно <span class="var">h</span> цитирований, тоже нужно поднять на одно. Это легко упустить.</li>
+          <li>Если на границе у нескольких статей одинаковое число цитирований, подойдёт любая. Трекер покажет равноценную замену, и вы выберете ту, которую проще продвигать.</li>
+          <li>Если публикаций меньше, чем нужно для цели, трекер скажет, сколько новых работ понадобится.</li>
+          <li>Режим моделирования в таблице плана позволяет добавить воображаемые цитирования и сразу увидеть новый <span class="var">h</span>. Например, отметьте статьи, на которые сошлётесь в следующей работе.</li>
+        </ul>
+
+        <h3>Работы в печати и прогноз</h3>
+        <p>Работу, которая принята к печати, но ещё не вышла, можно добавить заранее — свою публикацию (кнопка «Добавить работу в печати») или чужую статью, которая на вас ссылается (отметка «В печати» у цитирующей работы). На диаграмме ожидаемые цитирования показаны пунктирными клетками, а прогноз индекса — пунктирным квадратом.</p>
+        <ul>
+          <li>Для своей статьи в печати отметьте, на какие ваши работы она ссылается: после выхода это добавит им по самоцитированию, и трекер сразу покажет, как изменится <span class="var">h</span>.</li>
+          <li>Пока работа в печати, текущий индекс и история её не учитывают. План роста по умолчанию считает только то, чего не хватит после выхода работ в печати; переключатель «Работы в печати» под индексом убирает их из расчёта.</li>
+          <li>Когда работа выйдет, нажмите «Отметить как вышедшую» или «Вышла» — она перейдёт в текущий индекс.</li>
+        </ul>
+
+        <h3>Самоцитирования</h3>
+        <p>Укажите варианты своей фамилии в окне «Профиль и данные» (например: Иванов, Ivanov). Тогда цитирующие работы, где вы среди авторов, будут отмечены как самоцитирования, и трекер посчитает второй индекс — без них. Переключатель над диаграммой строит план по любому из двух индексов.</p>
+
+        <h3>Откуда взять данные</h3>
+        <ul>
+          <li><b>eLIBRARY (РИНЦ).</b> Список публикаций и число цитирований есть в «Анализе публикационной активности автора». Списки цитирующих работ можно скопировать и вставить в окно импорта: по одной работе на строку, ГОСТ-описания разбираются автоматически.</li>
+          <li><b>Google Scholar.</b> В профиле отметьте статьи и нажмите «Экспорт» (BibTeX, CSV или RIS). Число цитирований в этот экспорт не попадает, поэтому введите его в поле «по базе» или загрузите цитирующие работы со страницы «Цитируется».</li>
+          <li><b>Scopus.</b> Экспорт в CSV или RIS: столбец «Cited by» переносится автоматически. Цитирующие работы выгружаются со страницы «Cited by».</li>
+          <li><b>Web of Science.</b> Экспорт «Plain text» или «Tab-delimited»: поле TC переносится как число цитирований.</li>
+          <li><b>Excel.</b> Можно скопировать столбцы «название, год, цитирования» и вставить как текст, или загрузить файл .xlsx.</li>
+        </ul>
+        <p>Число цитирований публикации — это большее из двух значений: сколько цитирующих работ к ней привязано и сколько указано вручную «по базе». Так можно начать с одних чисел, а списки цитирующих работ добавлять постепенно.</p>
+
+        <h3>Как честно увеличить число цитирований</h3>
+        <ul>
+          <li><b>Найдите непривязанные ссылки в РИНЦ.</b> В «Персональном профиле автора» откройте «Мои цитирования» и включите показ непривязанных ссылок, которые могут принадлежать вам. Отметьте свои и добавьте их в список цитирований. Если ссылка не нашлась автоматически, воспользуйтесь «Поиском цитирований в РИНЦ». Часто это самый быстрый способ поднять индекс без новых публикаций.</li>
+          <li><b>Приведите профиль в порядок:</b> объедините дубли публикаций, проверьте инициалы и транслитерацию фамилии.</li>
+          <li><b>Откройте полные тексты:</b> eLIBRARY, репозиторий вуза, КиберЛенинка для журналов открытого доступа, профиль Google Scholar. Статью, которую можно прочитать, цитируют чаще.</li>
+          <li><b>Ссылайтесь на свои работы, когда это нужно по существу.</b> Самоцитирование учитывается в обычном <span class="var">h</span>, но не в индексе без самоцитирований, а чрезмерное самоцитирование хорошо заметно.</li>
+          <li><b>Рассказывайте о результатах:</b> доклады на конференциях, обзорные статьи, письма коллегам, которые работают по теме.</li>
+          <li><b>Не участвуйте в «обмене ссылками».</b> Договорное цитирование нарушает публикационную этику.</li>
+        </ul>
+
+        <h3>Где хранятся данные</h3>
+        <p id="storageHelp">Когда вы вошли в Claude, данные сохраняются в вашем аккаунте и видны только вам. Если поделиться ссылкой на трекер, каждый увидит лишь свои публикации. Без входа данные остаются только в этом браузере. Резервную копию и таблицу для Excel можно сохранить в окне «Профиль и данные».</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="tip" id="tip" hidden></div>
+<div class="toast" id="toast" hidden><span id="toastText"></span><button class="btn sm" id="toastUndo" type="button" hidden>Отменить</button></div>
+
+<!-- import -->
+<dialog id="dlgImport">
+  <form class="dlg" method="dialog" id="importForm">
+    <div class="dlg-head"><h2 id="impTitle">Импорт</h2><button class="btn ghost sm" value="cancel" type="submit" aria-label="Закрыть">✕</button></div>
+    <div class="dlg-body">
+      <div id="impTarget" hidden>
+        <label class="field"><span>Эти работы цитируют</span>
+          <select id="impTargetSel"></select>
+        </label>
+      </div>
+      <label class="check" style="font-size:14px"><input type="checkbox" id="impPending"> <span id="impPendingText">Это работы в печати — учитывать только в прогнозе</span></label>
+      <label class="field"><span id="impPasteLabel">Вставьте список</span>
+        <textarea id="impText" spellcheck="false"></textarea>
+      </label>
+      <label class="drop" id="impDrop" for="impFile">
+        <span><b>Или выберите файл</b> — перетащите его сюда</span>
+        <span class="small muted">CSV, TSV, TXT, RIS, BibTeX, Web of Science, Excel (.xlsx)</span>
+        <input type="file" id="impFile" class="sr" accept=".csv,.tsv,.txt,.ris,.bib,.bibtex,.xlsx,.xls,.ciw,.nbib">
+      </label>
+      <div id="impStatus" class="small" role="status"></div>
+      <div id="impPreview"></div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" value="cancel" type="submit">Отмена</button>
+      <button class="btn" id="impParse" type="button">Разобрать</button>
+      <button class="btn primary" id="impAdd" type="button" disabled>Добавить</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- publication edit -->
+<dialog id="dlgPub" class="narrow">
+  <form class="dlg" method="dialog" id="pubForm">
+    <div class="dlg-head"><h2 id="pubDlgTitle">Публикация</h2><button class="btn ghost sm" value="cancel" type="submit" aria-label="Закрыть">✕</button></div>
+    <div class="dlg-body">
+      <label class="field"><span>Название</span><textarea id="pubT" style="min-height:72px" required></textarea></label>
+      <label class="check" style="font-size:14px"><input type="checkbox" id="pubPending"> В печати — ещё не вышла (учитывается только в прогнозе)</label>
+      <label class="field"><span>Авторы</span><input type="text" id="pubA" placeholder="Иванов И. И., Петров П. П."></label>
+      <label class="field"><span>Журнал или сборник</span><input type="text" id="pubV"></label>
+      <div class="grid2">
+        <label class="field"><span>Год</span><input type="number" id="pubY" min="1900" max="2100" inputmode="numeric"></label>
+        <label class="field"><span id="pubMLabel">Цитирований по базе</span><input type="number" id="pubM" min="0" inputmode="numeric" placeholder="необязательно"></label>
+      </div>
+      <label class="field"><span>DOI или ссылка</span><input type="text" id="pubDoi"></label>
+      <div class="field"><span>Ссылается на мои публикации</span>
+        <span class="small muted" id="pubRefsHint">Отметьте свои работы из списка литературы этой статьи — это самоцитирования. Пока статья в печати, они учитываются только в прогнозе.</span>
+        <div class="checklist" id="pubRefs"></div></div>
+      <p class="err" id="pubErr" hidden></p>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" value="cancel" type="submit">Отмена</button>
+      <button class="btn primary" id="pubSave" type="button">Сохранить</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- citing work edit -->
+<dialog id="dlgCite" class="narrow">
+  <form class="dlg" method="dialog" id="citeForm">
+    <div class="dlg-head"><h2 id="citeDlgTitle">Цитирующая работа</h2><button class="btn ghost sm" value="cancel" type="submit" aria-label="Закрыть">✕</button></div>
+    <div class="dlg-body">
+      <label class="field"><span>Название или полное описание</span><textarea id="citeT" style="min-height:72px"></textarea></label>
+      <div class="grid2">
+        <label class="field"><span>Авторы</span><input type="text" id="citeA"></label>
+        <label class="field"><span>Год</span><input type="number" id="citeY" min="1900" max="2100" inputmode="numeric"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="citeSelf"> Самоцитирование (я среди авторов)</label>
+      <label class="check"><input type="checkbox" id="citePending"> В печати — ещё не вышла (учитывается только в прогнозе)</label>
+      <div class="field"><span>Цитирует мои публикации</span><div class="checklist" id="citeTo"></div></div>
+      <p class="err" id="citeErr" hidden></p>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" value="cancel" type="submit">Отмена</button>
+      <button class="btn primary" id="citeSave" type="button">Сохранить</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- profile & data -->
+<dialog id="dlgProfile">
+  <form class="dlg" method="dialog" id="profForm">
+    <div class="dlg-head"><h2>Профиль и данные</h2><button class="btn ghost sm" value="cancel" type="submit" aria-label="Закрыть">✕</button></div>
+    <div class="dlg-body" id="profBody"></div>
+    <div class="dlg-foot"><button class="btn primary" value="done" type="submit">Готово</button></div>
+  </form>
+</dialog>
+
+<!-- confirm -->
+<dialog id="dlgConfirm" class="narrow">
+  <form class="dlg" method="dialog">
+    <div class="dlg-head"><h2 id="cfTitle">Подтвердите</h2></div>
+    <div class="dlg-body"><p id="cfText" style="margin:0"></p></div>
+    <div class="dlg-foot">
+      <button class="btn" value="no" type="submit">Отмена</button>
+      <button class="btn primary" value="yes" type="submit" id="cfYes">Да</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- text output (backup / export fallback) -->
+<dialog id="dlgText">
+  <form class="dlg" method="dialog">
+    <div class="dlg-head"><h2 id="txtTitle">Данные</h2><button class="btn ghost sm" value="cancel" type="submit" aria-label="Закрыть">✕</button></div>
+    <div class="dlg-body">
+      <p class="small muted" id="txtHint" style="margin:0"></p>
+      <textarea id="txtArea" spellcheck="false" style="min-height:280px"></textarea>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" id="txtCopy" type="button">Скопировать</button>
+      <button class="btn primary" value="done" type="submit">Готово</button>
+    </div>
+  </form>
+</dialog>
+<script>
+/* ===== core: pure logic (no DOM) ===== */
+var Core = (function () {
+  'use strict';
+  var CUR_YEAR = new Date().getFullYear();
+
+  function uid(prefix) {
+    return (prefix || 'x') + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function norm(s) {
+    return String(s || '').toLowerCase().replace(/ё/g, 'е')
+      .replace(/[^0-9a-zа-яÀ-ɏ]+/gi, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function titleKey(t) { return norm(t).slice(0, 140); }
+
+  function tokens(s) {
+    return norm(s).split(' ').filter(function (w) { return w.length >= 3; });
+  }
+  function similarity(a, b) {
+    var A = tokens(a), B = tokens(b);
+    if (!A.length || !B.length) return 0;
+    var setB = {}; B.forEach(function (w) { setB[w] = 1; });
+    var setA = {}; A.forEach(function (w) { setA[w] = 1; });
+    var inter = 0, ka = Object.keys(setA), kb = Object.keys(setB);
+    ka.forEach(function (w) { if (setB[w]) inter++; });
+    var union = ka.length + kb.length - inter;
+    var jac = inter / union;
+    var cont = inter / Math.min(ka.length, kb.length);
+    return Math.max(jac, cont * 0.92);
+  }
+
+  /* Find which of my publications a cited-title string refers to */
+  function matchPub(title, pubs) {
+    var k = titleKey(title);
+    if (!k) return null;
+    for (var i = 0; i < pubs.length; i++) if (titleKey(pubs[i].t) === k) return pubs[i];
+    var best = null, bestS = 0;
+    pubs.forEach(function (p) {
+      var s = similarity(title, p.t);
+      if (s > bestS) { bestS = s; best = p; }
+    });
+    return bestS >= 0.6 ? best : null;
+  }
+
+  /* ---------- self-citation ---------- */
+  function nameVariants(str) {
+    return String(str || '').split(/[,;\n]+/).map(function (x) { return norm(x); })
+      .filter(function (x) { return x.length >= 2; });
+  }
+  function isSelf(authors, variants) {
+    if (!authors || !variants || !variants.length) return false;
+    var words = ' ' + norm(authors) + ' ';
+    return variants.some(function (v) { return words.indexOf(' ' + v + ' ') !== -1; });
+  }
+
+  /* ---------- counting ---------- */
+  /* Per publication:
+     all / nonself      — counted now (published works only; a publication in press has 0 now)
+     futAll / futNonself — after everything "в печати" comes out
+     pend / pendNs       — the difference, i.e. what is expected from works in press */
+  function computeCounts(profile) {
+    var map = {};
+    profile.pubs.forEach(function (p) {
+      map[p.id] = { linked: 0, self: 0, withYear: 0, linkedPend: 0, selfPend: 0, pending: !!p.pending };
+    });
+    profile.cites.forEach(function (c) {
+      var seen = {};
+      (c.to || []).forEach(function (pid) {
+        if (!map[pid] || seen[pid]) return;
+        seen[pid] = 1;
+        if (c.pending) {
+          map[pid].linkedPend++;
+          if (c.self) map[pid].selfPend++;
+        } else {
+          map[pid].linked++;
+          if (c.self) map[pid].self++;
+          if (c.y) map[pid].withYear++;
+        }
+      });
+    });
+    profile.pubs.forEach(function (p) {
+      var r = map[p.id];
+      var m = (p.m === null || p.m === undefined || p.m === '') ? 0 : Math.max(0, Math.floor(+p.m) || 0);
+      r.manual = m;
+      if (p.pending) {
+        r.all = 0; r.nonself = 0;
+        r.futAll = Math.max(m, r.linked + r.linkedPend);
+        r.futNonself = Math.max(0, r.futAll - r.self - r.selfPend);
+      } else {
+        r.all = Math.max(m, r.linked);
+        r.nonself = Math.max(0, r.all - r.self);
+        r.futAll = r.all + r.linkedPend;
+        r.futNonself = r.nonself + r.linkedPend - r.selfPend;
+      }
+      r.pend = r.futAll - r.all;
+      r.pendNs = r.futNonself - r.nonself;
+    });
+    return map;
+  }
+
+  function hIndex(values) {
+    var a = values.slice().sort(function (x, y) { return y - x; });
+    var h = 0;
+    for (var i = 0; i < a.length; i++) { if (a[i] >= i + 1) h = i + 1; else break; }
+    return h;
+  }
+
+  /* ranked list of {id, c, base, pend, add, y, t}.
+     usePending: include publications in press and expected citations (pend). */
+  function ranked(profile, counts, basis, sim, usePending) {
+    var items = profile.pubs.filter(function (p) { return usePending || !p.pending; }).map(function (p) {
+      var r = counts[p.id];
+      var base = r ? (basis === 'nonself' ? r.nonself : r.all) : 0;
+      var pend = r && usePending ? (basis === 'nonself' ? r.pendNs : r.pend) : 0;
+      var add = sim && sim[p.id] ? sim[p.id] : 0;
+      return { id: p.id, c: base + pend + add, base: base, pend: pend, add: add, pending: !!p.pending, y: p.y || 0, t: p.t || '' };
+    });
+    items.sort(function (a, b) {
+      if (b.c !== a.c) return b.c - a.c;
+      if (b.y !== a.y) return b.y - a.y;
+      return a.t.localeCompare(b.t, 'ru');
+    });
+    items.forEach(function (it, i) { it.rank = i + 1; });
+    return items;
+  }
+
+  /* Minimal plan to reach target T: boost the T most-cited publications */
+  function plan(items, T) {
+    var n = items.length;
+    var chosen = items.slice(0, Math.min(T, n));
+    var rows = chosen.map(function (it) { return { id: it.id, c: it.c, need: Math.max(0, T - it.c), rank: it.rank }; });
+    var newPubs = Math.max(0, T - n);
+    var sum = 0, papers = 0;
+    rows.forEach(function (r) { sum += r.need; if (r.need > 0) papers++; });
+    var alternatives = [], tieC = null;
+    if (n > T && chosen.length && chosen[chosen.length - 1].c < T) {
+      tieC = chosen[chosen.length - 1].c;
+      alternatives = items.slice(T).filter(function (x) { return x.c === tieC; }).map(function (x) { return x.id; });
+      if (!alternatives.length) tieC = null;
+    }
+    return {
+      T: T, rows: rows, need: sum + newPubs * T, citesOnExisting: sum,
+      papers: papers, newPubs: newPubs, alternatives: alternatives, tieC: tieC
+    };
+  }
+
+  function ladder(items, h, k) {
+    var out = [];
+    for (var i = 1; i <= k; i++) out.push(plan(items, h + i));
+    return out;
+  }
+
+  /* ---------- reconstruction by year of citing works ---------- */
+  function byYear(profile) {
+    /* only what has already come out */
+    profile = {
+      pubs: profile.pubs.filter(function (p) { return !p.pending; }),
+      cites: profile.cites.filter(function (c) { return !c.pending; })
+    };
+    var pubYear = {};
+    profile.pubs.forEach(function (p) { pubYear[p.id] = p.y || null; });
+    var counts = computeCounts(profile);
+    var total = 0, dated = 0;
+    profile.pubs.forEach(function (p) { total += counts[p.id].all; dated += counts[p.id].withYear; });
+    var years = [];
+    profile.cites.forEach(function (c) { if (c.y) years.push(c.y); });
+    profile.pubs.forEach(function (p) { if (p.y) years.push(p.y); });
+    if (!years.length) return { rows: [], coverage: total ? dated / total : 0, total: total, dated: dated };
+    var y0 = Math.min.apply(null, years), y1 = Math.max(CUR_YEAR, Math.max.apply(null, years));
+    y0 = Math.max(y0, y1 - 30);
+    var rows = [];
+    for (var Y = y0; Y <= y1; Y++) {
+      var all = {}, ns = {};
+      profile.pubs.forEach(function (p) { all[p.id] = 0; ns[p.id] = 0; });
+      profile.cites.forEach(function (c) {
+        if (!c.y || c.y > Y) return;
+        var seen = {};
+        (c.to || []).forEach(function (pid) {
+          if (all[pid] === undefined || seen[pid]) return;
+          if (pubYear[pid] && pubYear[pid] > Y) return;
+          seen[pid] = 1; all[pid]++; if (!c.self) ns[pid]++;
+        });
+      });
+      var va = Object.keys(all).map(function (k) { return all[k]; });
+      var vn = Object.keys(ns).map(function (k) { return ns[k]; });
+      var sum = va.reduce(function (s, x) { return s + x; }, 0);
+      rows.push({ y: Y, h: hIndex(va), hn: hIndex(vn), c: sum });
+    }
+    return { rows: rows, coverage: total ? dated / total : 0, total: total, dated: dated };
+  }
+
+  /* ---------- parsing ---------- */
+  function stripBOM(s) { return String(s || '').replace(/^﻿/, ''); }
+
+  function detectDelimiter(text) {
+    var lines = text.split(/\r?\n/).filter(function (l) { return l.trim(); }).slice(0, 20);
+    var cands = ['\t', ';', ','], best = null, bestScore = 0;
+    cands.forEach(function (d) {
+      var counts = lines.map(function (l) { return splitLine(l, d).length; });
+      if (!counts.length) return;
+      var multi = counts.filter(function (c) { return c > 1; }).length;
+      var same = counts.filter(function (c) { return c === counts[0]; }).length;
+      var score = multi / counts.length + (counts[0] > 1 ? same / counts.length : 0);
+      if (d === '\t') score += 0.3;
+      if (score > bestScore) { bestScore = score; best = d; }
+    });
+    return bestScore >= 1.2 ? best : null;
+  }
+
+  function splitLine(line, d) { return parseDelimited(line, d)[0] || []; }
+
+  /* RFC-4180-ish parser with quotes */
+  function parseDelimited(text, d) {
+    var rows = [], row = [], cell = '', q = false, i = 0, s = text;
+    while (i < s.length) {
+      var ch = s[i];
+      if (q) {
+        if (ch === '"') {
+          if (s[i + 1] === '"') { cell += '"'; i += 2; continue; }
+          q = false; i++; continue;
+        }
+        cell += ch; i++; continue;
+      }
+      if (ch === '"' && cell === '') { q = true; i++; continue; }
+      if (ch === d) { row.push(cell); cell = ''; i++; continue; }
+      if (ch === '\r') { i++; continue; }
+      if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; i++; continue; }
+      cell += ch; i++;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows.map(function (r) { return r.map(function (c) { return c.trim(); }); })
+      .filter(function (r) { return r.some(function (c) { return c !== ''; }); });
+  }
+
+  var ROLE_WORDS = {
+    title: ['title', 'article title', 'document title', 'ti', 't1', 'название', 'наименование', 'заглавие',
+      'название публикации', 'название статьи', 'публикация', 'название работы', 'работа', 'цитирующая работа',
+      'цитирующая публикация'],
+    year: ['year', 'py', 'y1', 'год', 'год издания', 'год публикации', 'publication year', 'pubyear'],
+    cites: ['cited by', 'cites', 'citations', 'times cited', 'tc', 'z9', 'цитирований', 'цитирования',
+      'число цитирований', 'количество цитирований', 'кол-во цитирований', 'цит', 'цит.', 'цитировано',
+      'total citations', 'times cited, wos core', 'times cited, all databases', 'citation count', 'ссылок'],
+    authors: ['authors', 'author', 'author full names', 'au', 'af', 'a1', 'авторы', 'автор', 'автор(ы)'],
+    venue: ['source title', 'source', 'publication', 'journal', 'so', 'jo', 't2', 'secondary title',
+      'журнал', 'издание', 'источник', 'publisher'],
+    doi: ['doi', 'di', 'do'],
+    target: ['цитирует', 'цитируемая публикация', 'цитируемая работа', 'моя публикация', 'cited work',
+      'cited title', 'cites title', 'target']
+  };
+  function roleOf(header) {
+    var h = String(header || '').toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
+    if (!h) return '';
+    var order = ['target', 'cites', 'year', 'doi', 'authors', 'venue', 'title'];
+    for (var i = 0; i < order.length; i++) {
+      var list = ROLE_WORDS[order[i]];
+      if (list.indexOf(h) !== -1) return order[i];
+    }
+    if (/цитир|cited|citation/.test(h) && !/работ|title|назв/.test(h)) return 'cites';
+    if (/^год|year/.test(h)) return 'year';
+    if (/назв|title|заглав/.test(h)) return 'title';
+    if (/автор|author/.test(h)) return 'authors';
+    return '';
+  }
+
+  function isYear(v) { var n = +String(v).trim(); return /^\d{4}$/.test(String(v).trim()) && n >= 1900 && n <= CUR_YEAR + 1; }
+  function isCount(v) { return /^\d{1,6}$/.test(String(v).trim()); }
+
+  /* guess roles for a table without recognizable headers */
+  function inferRoles(rows) {
+    var w = Math.max.apply(null, rows.map(function (r) { return r.length; }));
+    var roles = [];
+    var stats = [];
+    for (var c = 0; c < w; c++) {
+      var vals = rows.map(function (r) { return r[c] || ''; }).filter(function (v) { return v !== ''; });
+      var yr = vals.filter(isYear).length, cnt = vals.filter(isCount).length;
+      var len = vals.reduce(function (s, v) { return s + v.length; }, 0) / (vals.length || 1);
+      stats.push({ c: c, n: vals.length, yr: yr, cnt: cnt, len: len });
+    }
+    var used = {};
+    var tcol = stats.slice().sort(function (a, b) { return b.len - a.len; })[0];
+    if (tcol) { roles[tcol.c] = 'title'; used.title = 1; }
+    stats.forEach(function (s) {
+      if (roles[s.c]) return;
+      if (!used.year && s.n && s.yr / s.n > 0.7) { roles[s.c] = 'year'; used.year = 1; return; }
+    });
+    stats.slice().reverse().forEach(function (s) {
+      if (roles[s.c]) return;
+      if (!used.cites && s.n && s.cnt / s.n > 0.7) { roles[s.c] = 'cites'; used.cites = 1; }
+    });
+    for (var k = 0; k < w; k++) if (!roles[k]) roles[k] = '';
+    return roles;
+  }
+
+  /* table (array of arrays) -> {headers, roles, rows, hasHeader} */
+  function tableFromRows(rows) {
+    if (!rows.length) return { headers: [], roles: [], rows: [], hasHeader: false };
+    var first = rows[0];
+    var roles = first.map(roleOf);
+    var known = roles.filter(Boolean).length;
+    if (known >= 1 && roles.indexOf('title') !== -1 || known >= 2) {
+      var w = Math.max.apply(null, rows.map(function (r) { return r.length; }));
+      var headers = [];
+      for (var i = 0; i < w; i++) headers.push(first[i] || ('Столбец ' + (i + 1)));
+      while (roles.length < w) roles.push('');
+      return { headers: headers, roles: roles, rows: rows.slice(1), hasHeader: true };
+    }
+    var inf = inferRoles(rows);
+    return {
+      headers: inf.map(function (_, i) { return 'Столбец ' + (i + 1); }),
+      roles: inf, rows: rows, hasHeader: false
+    };
+  }
+
+  function recordsFromTable(tbl) {
+    var out = [];
+    tbl.rows.forEach(function (r) {
+      var rec = { t: '', y: null, c: null, a: '', v: '', doi: '', target: '' };
+      tbl.roles.forEach(function (role, i) {
+        var v = (r[i] || '').trim();
+        if (!role || !v) return;
+        if (role === 'title') rec.t = rec.t ? rec.t : v;
+        else if (role === 'year') { var m = v.match(/(19|20)\d{2}/); rec.y = m ? +m[0] : null; }
+        else if (role === 'cites') { var n = parseInt(v.replace(/\s/g, ''), 10); rec.c = isNaN(n) ? null : n; }
+        else if (role === 'authors') rec.a = v;
+        else if (role === 'venue') rec.v = rec.v || v;
+        else if (role === 'doi') rec.doi = v;
+        else if (role === 'target') rec.target = v;
+      });
+      if (rec.t) {
+        if (!tbl.roles.some(function (x) { return x === 'year'; }) || !rec.y) {
+          var ref = parseReference(rec.t);
+          if (!rec.y && ref.y && ref.t !== rec.t) rec.y = ref.y;
+        }
+        out.push(rec);
+      }
+    });
+    return out;
+  }
+
+  /* ---- one bibliographic reference (ГОСТ / APA-like) ---- */
+  var AUTH = "[A-ZА-ЯЁ][a-zа-яё'’]+(?:-[A-ZА-ЯЁ]?[a-zа-яё'’]+)?,?\\s+(?:[A-ZА-ЯЁ][a-zа-яё]?\\.\\s?-?){1,3}";
+  var AUTH_RE = new RegExp('^((?:' + AUTH + '\\s*(?:,|;|\\sи\\s|\\sand\\s|&)?\\s*)+)(.*)$');
+
+  function parseReference(line) {
+    var s = String(line || '').replace(/\s+/g, ' ').trim();
+    s = s.replace(/^(\[\d+\]|\d{1,4}[.)])\s+/, '');
+    var res = { t: s, a: '', y: null, c: null };
+    var cm = s.match(/\[?\s*(цитирован[а-яё]*|cited by|цит\.?)\s*[:\-]?\s*(\d+)\s*\]?\s*$/i);
+    if (cm) { res.c = +cm[2]; s = s.slice(0, cm.index).trim(); }
+    var years = [];
+    var re = /(^|[^\d])((19[5-9]\d|20\d{2}))(?!\d)/g, m;
+    while ((m = re.exec(s))) { var yv = +m[2]; if (yv <= CUR_YEAR + 1) years.push({ y: yv, i: m.index + m[1].length }); }
+    var slashes = s.indexOf(' // ');
+    var paren = s.match(/\((19|20)\d{2}[a-z]?\)/);
+    if (slashes !== -1) {
+      var after = years.filter(function (x) { return x.i > slashes; });
+      res.y = after.length ? after[0].y : (years.length ? years[years.length - 1].y : null);
+    } else if (paren) res.y = +paren[0].slice(1, 5);
+    else if (years.length) res.y = years[years.length - 1].y;
+    var am = s.match(AUTH_RE);
+    var rest = s;
+    if (am && am[2] && am[2].length > 8) {
+      res.a = am[1].replace(/[\s,;&]+$/, '').trim();
+      rest = am[2].trim();
+    }
+    rest = rest.replace(/^\(\s*(19|20)\d{2}[a-z]?\s*\)\s*[.,]?\s*/, '');
+    var cut = rest.length;
+    var i1 = rest.indexOf(' // '); if (i1 !== -1) cut = Math.min(cut, i1);
+    var i2 = rest.indexOf(' / '); if (i2 !== -1) cut = Math.min(cut, i2);
+    if (cut === rest.length) {
+      var dm = rest.match(/\.\s+(?=.*\b(19|20)\d{2}\b)/);
+      if (dm && dm.index > 15) cut = dm.index;
+    }
+    var t = rest.slice(0, cut);
+    t = t.replace(/\[(электронный ресурс|текст|electronic resource)\]/gi, '')
+      .replace(/\s*[.:;,–—-]+\s*$/, '').replace(/\s+/g, ' ').trim();
+    res.t = t || s;
+    return res;
+  }
+
+  /* ---- tagged formats: RIS and Web of Science plain text ---- */
+  function parseTagged(text) {
+    var lines = text.split(/\r?\n/);
+    var recs = [], cur = null, lastTag = null;
+    function finish() { if (cur && (cur.TI || cur.T1)) recs.push(cur); cur = null; lastTag = null; }
+    lines.forEach(function (raw) {
+      var l = raw.replace(/\s+$/, '');
+      var mr = l.match(/^([A-Z][A-Z0-9])  - ?(.*)$/);
+      var mw = !mr && l.match(/^([A-Z][A-Z0-9]) (.*)$/);
+      var mc = !mr && !mw && l.match(/^\s{2,}(\S.*)$/);
+      if (mr || mw) {
+        var tag = (mr || mw)[1], val = (mr || mw)[2].trim();
+        if (tag === 'ER') { finish(); return; }
+        if (tag === 'TY' || tag === 'PT') { finish(); }
+        cur = cur || {};
+        if (cur[tag] !== undefined && (tag === 'AU' || tag === 'A1' || tag === 'AF')) cur[tag] += '; ' + val;
+        else if (cur[tag] === undefined) cur[tag] = val;
+        lastTag = tag;
+      } else if (mc && cur && lastTag) {
+        var sep = (lastTag === 'AU' || lastTag === 'AF') ? '; ' : ' ';
+        cur[lastTag] += sep + mc[1].trim();
+      }
+    });
+    finish();
+    return recs.map(function (r) {
+      var y = r.PY || r.Y1 || r.DA || r.Y2 || '';
+      var ym = String(y).match(/(19|20)\d{2}/);
+      var c = null;
+      if (r.TC && /^\d+$/.test(r.TC)) c = +r.TC;
+      else if (r.Z9 && /^\d+$/.test(r.Z9)) c = +r.Z9;
+      else {
+        var note = (r.N1 || '') + ' ' + (r.M1 || '');
+        var nm = note.match(/cited by\s*:?\s*(\d+)/i) || note.match(/цитирован[а-яё]*\s*:?\s*(\d+)/i);
+        if (nm) c = +nm[1];
+      }
+      return {
+        t: (r.TI || r.T1 || '').replace(/\s+/g, ' ').trim(),
+        a: r.AU || r.A1 || r.AF || '',
+        y: ym ? +ym[0] : null,
+        c: c,
+        v: r.JO || r.JF || r.T2 || r.SO || r.J2 || '',
+        doi: r.DO || r.DI || '',
+        target: ''
+      };
+    }).filter(function (r) { return r.t; });
+  }
+
+  /* ---- BibTeX ---- */
+  function parseBibTeX(text) {
+    var out = [], i = 0, s = text;
+    while ((i = s.indexOf('@', i)) !== -1) {
+      var open = s.indexOf('{', i);
+      if (open === -1) break;
+      var type = s.slice(i + 1, open).trim().toLowerCase();
+      var depth = 1, j = open + 1;
+      while (j < s.length && depth > 0) { if (s[j] === '{') depth++; else if (s[j] === '}') depth--; j++; }
+      var body = s.slice(open + 1, j - 1);
+      i = j;
+      if (type === 'comment' || type === 'string' || type === 'preamble') continue;
+      var fields = {}, k = body.indexOf(',') + 1;
+      while (k > 0 && k < body.length) {
+        var eq = body.indexOf('=', k);
+        if (eq === -1) break;
+        var name = body.slice(k, eq).trim().toLowerCase().replace(/^,/, '').trim();
+        var p = eq + 1;
+        while (p < body.length && /\s/.test(body[p])) p++;
+        var val = '';
+        if (body[p] === '{') {
+          var d = 1, q = p + 1;
+          while (q < body.length && d > 0) { if (body[q] === '{') d++; else if (body[q] === '}') d--; q++; }
+          val = body.slice(p + 1, q - 1); p = q;
+        } else if (body[p] === '"') {
+          var q2 = p + 1;
+          while (q2 < body.length && !(body[q2] === '"' && body[q2 - 1] !== '\\')) q2++;
+          val = body.slice(p + 1, q2); p = q2 + 1;
+        } else {
+          var q3 = p;
+          while (q3 < body.length && body[q3] !== ',') q3++;
+          val = body.slice(p, q3).trim(); p = q3;
+        }
+        fields[name] = val.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
+        var comma = body.indexOf(',', p);
+        if (comma === -1) break;
+        k = comma + 1;
+      }
+      if (!fields.title) continue;
+      var c = null;
+      var note = (fields.note || '') + ' ' + (fields.annote || '');
+      var nm = note.match(/cited by\s*:?\s*(\d+)/i);
+      if (nm) c = +nm[1];
+      if (fields.citations && /^\d+$/.test(fields.citations)) c = +fields.citations;
+      var ym = String(fields.year || fields.date || '').match(/(19|20)\d{2}/);
+      out.push({
+        t: fields.title, a: (fields.author || '').replace(/\s+and\s+/gi, '; '),
+        y: ym ? +ym[0] : null, c: c, v: fields.journal || fields.booktitle || fields.publisher || '',
+        doi: fields.doi || '', target: ''
+      });
+    }
+    return out;
+  }
+
+  /* ---- plain list: one reference per line ---- */
+  function parseLines(text) {
+    return text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(function (l) { return l.length > 3; })
+      .map(function (l) {
+        /* a line with tab-separated cells: title + year + count in any order */
+        var cells = l.indexOf('\t') !== -1 ? l.split('\t') : (/;\s*\d{1,6}\s*$/.test(l) ? l.split(';') : null);
+        if (cells) {
+          cells = cells.map(function (c) { return c.trim(); }).filter(Boolean);
+          var title = '', y = null, c = null;
+          cells.forEach(function (cell) { if (cell.length > title.length && !isCount(cell)) title = cell; });
+          cells.forEach(function (cell) {
+            if (cell === title) return;
+            if (y === null && isYear(cell)) y = +cell;
+            else if (isCount(cell)) c = +cell;
+          });
+          if (title) {
+            var rr = parseReference(title);
+            return { t: rr.t, a: rr.a, y: y || rr.y, c: c !== null ? c : rr.c, v: '', doi: '', target: '' };
+          }
+        }
+        var r = parseReference(l);
+        return { t: r.t, a: r.a, y: r.y, c: r.c, v: '', doi: '', target: '' };
+      });
+  }
+
+  /* ---- multi-line entries (e.g. copied from a web page: title / authors / source) ---- */
+  function isAuthorLine(s) {
+    var m = String(s || '').trim().match(AUTH_RE);
+    return !!(m && String(m[2] || '').replace(/[\s.,;]+/g, '').length === 0);
+  }
+  function parseBlock(lines) {
+    var first = lines[0].replace(/^(\[\d+\]|\d{1,4}[.)])\s+/, '').trim();
+    var rest = lines.slice(1);
+    var t, a = '';
+    if (isAuthorLine(first) && rest.length) { a = first; t = rest[0]; rest = rest.slice(1); }
+    else {
+      t = first;
+      if (rest.length && isAuthorLine(rest[0])) { a = rest[0]; rest = rest.slice(1); }
+    }
+    var tail = rest.join(' ');
+    var ref = parseReference(t);
+    if (ref.a && !a) { a = ref.a; }
+    t = ref.a ? ref.t : t.replace(/\s*[.:;,]+\s*$/, '');
+    var y = null, mm = tail.match(/(^|[^\d])((19[5-9]\d|20\d{2}))(?!\d)/);
+    if (mm && +mm[2] <= CUR_YEAR + 1) y = +mm[2]; else y = ref.y;
+    var c = null, cm = (tail + ' ' + lines[0]).match(/(цитирован[а-яё]*|cited by|цит\.?)\s*[:\-]?\s*(\d+)/i);
+    if (cm) c = +cm[2];
+    return { t: t, a: a.replace(/[\s,;]+$/, ''), y: y, c: c, v: '', doi: '', target: '' };
+  }
+  function parseEntries(text) {
+    var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); });
+    var nonEmpty = lines.filter(Boolean);
+    var numRe = /^(\[\d+\]|\d{1,4}[.)])\s+\S/;
+    var numbered = nonEmpty.filter(function (l) { return numRe.test(l); }).length;
+    var groups = null;
+    if (numbered >= 2 && numbered < nonEmpty.length * 0.9) {
+      groups = [];
+      nonEmpty.forEach(function (l) {
+        if (numRe.test(l) || !groups.length) groups.push([l]); else groups[groups.length - 1].push(l);
+      });
+    } else {
+      var blocks = text.split(/\r?\n\s*\r?\n/).map(function (b) { return b.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean); }).filter(function (b) { return b.length; });
+      var avg = blocks.reduce(function (s, b) { return s + b.length; }, 0) / (blocks.length || 1);
+      if (blocks.length >= 2 && avg >= 2 && avg <= 8) groups = blocks;
+    }
+    if (!groups) return parseLines(text);
+    return groups.map(function (g) {
+      if (g.length === 1) { var r = parseLines(g[0])[0]; return r; }
+      return parseBlock(g);
+    }).filter(function (r) { return r && r.t && r.t.length > 3; });
+  }
+
+  /* Decide the format of pasted/loaded text. Returns {kind, table?, records} */
+  function parseText(text, hint) {
+    text = stripBOM(text);
+    if (!text.trim()) return { kind: 'empty', records: [] };
+    if (hint === 'bib' || /@\w+\s*\{/.test(text) && /title\s*=/.test(text)) {
+      var b = parseBibTeX(text); if (b.length) return { kind: 'bibtex', records: b };
+    }
+    if (hint === 'ris' || /^TY  - /m.test(text) || (/^PT [A-Z]/m.test(text) && /^TI /m.test(text)) || /^ER\s*$/m.test(text)) {
+      var t = parseTagged(text); if (t.length) return { kind: /^TY  - /m.test(text) ? 'ris' : 'wos', records: t };
+    }
+    var d = detectDelimiter(text);
+    if (d) {
+      var rows = parseDelimited(text, d);
+      var tbl = tableFromRows(rows);
+      if (tbl.roles.indexOf('title') !== -1) {
+        return { kind: 'table', delimiter: d, table: tbl, records: recordsFromTable(tbl) };
+      }
+    }
+    return { kind: 'lines', records: parseEntries(text) };
+  }
+
+  function parseRowsTable(rows) {
+    rows = rows.map(function (r) { return r.map(function (c) { return c === null || c === undefined ? '' : String(c).trim(); }); })
+      .filter(function (r) { return r.some(function (c) { return c !== ''; }); });
+    var tbl = tableFromRows(rows);
+    return { kind: 'table', table: tbl, records: recordsFromTable(tbl) };
+  }
+
+  /* ---------- CSV export ---------- */
+  function csvCell(v) {
+    var s = v === null || v === undefined ? '' : String(v);
+    return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function toCSV(rows) { return '﻿' + rows.map(function (r) { return r.map(csvCell).join(';'); }).join('\r\n'); }
+
+  return {
+    uid: uid, norm: norm, titleKey: titleKey, similarity: similarity, matchPub: matchPub,
+    nameVariants: nameVariants, isSelf: isSelf, computeCounts: computeCounts, hIndex: hIndex,
+    ranked: ranked, plan: plan, ladder: ladder, byYear: byYear,
+    parseText: parseText, parseRowsTable: parseRowsTable, parseReference: parseReference,
+    parseDelimited: parseDelimited, tableFromRows: tableFromRows, recordsFromTable: recordsFromTable,
+    parseTagged: parseTagged, parseBibTeX: parseBibTeX, roleOf: roleOf, toCSV: toCSV, CUR_YEAR: CUR_YEAR
+  };
+})();
+if (typeof module !== 'undefined') module.exports = Core;
+/* ===== demo data: a fictional author, clearly marked as an example ===== */
+function makeDemoProfile() {
+  var P = [
+    ['Цифровые компетенции педагога профессионального обучения: структура и диагностика', 2019, 'Вестник профессиональной педагогики', 'Соколова А. В.', 9],
+    ['Проектирование электронного учебного курса для студентов колледжа', 2018, 'Колледж и производство', 'Соколова А. В., Петрова Е. С.', null],
+    ['Наставничество в системе среднего профессионального образования: современные модели', 2020, 'Вестник профессиональной педагогики', 'Соколова А. В.', null],
+    ['Модель формирования методической готовности мастера производственного обучения', 2021, 'Педагогика профессионального обучения', 'Соколова А. В.', null],
+    ['Оценивание учебных достижений с применением адаптивного тестирования', 2021, 'Сборник трудов конференции «Цифровая дидактика»', 'Соколова А. В., Ахмедов Р. Т.', null],
+    ['Использование чат-ботов для сопровождения самостоятельной работы студентов СПО', 2022, 'Колледж и производство', 'Соколова А. В.', null],
+    ['Демонстрационный экзамен как инструмент оценки квалификации выпускников колледжа', 2022, 'Педагогика профессионального обучения', 'Соколова А. В., Яковлев К. О.', null],
+    ['Генеративные нейросети в подготовке педагогов профессионального обучения', 2023, 'Вестник профессиональной педагогики', 'Соколова А. В.', null],
+    ['Цифровой след студента: возможности педагогического анализа', 2023, 'Сборник трудов конференции «Цифровая дидактика»', 'Соколова А. В.', null],
+    ['Промпт-инжиниринг как составляющая профессиональной компетентности педагога', 2024, 'Педагогика профессионального обучения', 'Соколова А. В.', null],
+    ['Риски применения искусственного интеллекта в учебном процессе колледжа', 2025, 'Колледж и производство', 'Соколова А. В., Белов И. Н.', null],
+    ['Кейс-метод в подготовке педагогов профессионального обучения', 2025, 'Сборник трудов конференции «Цифровая дидактика»', 'Соколова А. В.', null]
+  ];
+  var pubs = P.map(function (r, i) {
+    return { id: 'demo_p' + (i + 1), t: r[0], y: r[1], v: r[2], a: r[3], doi: '', m: r[4] };
+  });
+  /* an article of the author that is still in press: it cites four of her earlier papers */
+  pubs.push({ id: 'demo_p13', t: 'Подготовка педагогов профессионального обучения к использованию генеративного ИИ: программа повышения квалификации',
+    y: 2026, v: 'Педагогика профессионального обучения', a: 'Соколова А. В.', doi: '', m: null, pending: true,
+    refs: ['demo_p4', 'demo_p5', 'demo_p6', 'demo_p7'] });
+  /* [title, authors, year, [pub numbers]] */
+  var C = [
+    ['Формирование цифровой грамотности будущих педагогов профессионального обучения', 'Петрова Е. С.', 2020, [1]],
+    ['Диагностика цифровых компетенций преподавателей колледжа: опыт регионального исследования', 'Ковалёв Д. А., Лебедева М. Ю.', 2021, [1]],
+    ['Цифровая трансформация среднего профессионального образования: кадровый аспект', 'Мухаметова Л. Р.', 2021, [1]],
+    ['Профессиональный стандарт педагога и цифровые компетенции: точки соприкосновения', 'Белов И. Н.', 2022, [1]],
+    ['Самооценка цифровых компетенций студентами педагогического вуза', 'Григорьева О. В., Тимофеев С. С.', 2024, [1]],
+    ['Модель повышения квалификации преподавателей в области цифровых технологий', 'Ахмедов Р. Т.', 2025, [1]],
+    ['Смешанное обучение в колледже: проектирование учебных модулей', 'Николаева Т. А.', 2019, [2]],
+    ['Электронная информационно-образовательная среда колледжа в условиях дистанционного обучения', 'Шарипов Э. Р., Орлова В. Г.', 2020, [2]],
+    ['Опыт перехода колледжа на дистанционное обучение весной 2020 года', 'Кузнецова Н. Е.', 2020, [2]],
+    ['Критерии качества электронного учебного курса для СПО', 'Ибрагимова А. К.', 2022, [2]],
+    ['Микрообучение в подготовке специалистов среднего звена', 'Морозов П. В.', 2023, [2]],
+    ['Наставничество молодых преподавателей колледжа: организационные условия', 'Федорова И. А.', 2021, [3]],
+    ['Целевая модель наставничества в профессиональных образовательных организациях', 'Сафина Г. М.', 2022, [3]],
+    ['Роль наставника в адаптации выпускников колледжа на производстве', 'Яковлев К. О., Петрова Е. С.', 2023, [3]],
+    ['Цифровое наставничество: новые форматы взаимодействия', 'Лебедева М. Ю.', 2024, [3]],
+    ['Наставничество как механизм развития профессиональной идентичности педагога', 'Зайцев А. П.', 2026, [3]],
+    ['Педагогический дизайн программ профессионального обучения', 'Орлова В. Г.', 2021, [2, 3]],
+    ['Компетенции преподавателя в цифровой образовательной среде: обзор исследований', 'Ковалёв Д. А.', 2022, [1, 2]],
+    ['Методическая подготовка мастеров производственного обучения в условиях дуального обучения', 'Тимофеев С. С.', 2022, [4]],
+    ['Готовность мастера производственного обучения к инновационной деятельности', 'Мухаметова Л. Р., Сафина Г. М.', 2023, [4]],
+    ['Формирование методической компетентности педагогов профессионального обучения в магистратуре', 'Николаева Т. А.', 2024, [4]],
+    ['Профессиональное развитие мастеров производственного обучения: региональный опыт', 'Белов И. Н.', 2025, [4]],
+    ['Адаптивное тестирование в системе текущего контроля колледжа', 'Шарипов Э. Р.', 2022, [5]],
+    ['Компьютерное тестирование и объективность оценки учебных достижений', 'Григорьева О. В.', 2023, [5]],
+    ['Персонализация оценивания с использованием цифровых платформ', 'Ибрагимова А. К., Морозов П. В.', 2025, [5]],
+    ['Фонд оценочных средств в эпоху искусственного интеллекта', 'Ахмедов Р. Т.', 2026, [5]],
+    ['Чат-бот как помощник преподавателя: сценарии использования', 'Кузнецова Н. Е.', 2023, [6]],
+    ['Мессенджеры в учебном процессе колледжа', 'Федорова И. А.', 2024, [6]],
+    ['Виртуальные ассистенты для поддержки самостоятельной работы обучающихся', 'Зайцев А. П., Лебедева М. Ю.', 2025, [6]],
+    ['Демонстрационный экзамен: проблемы организации и пути их решения', 'Яковлев К. О.', 2023, [7]],
+    ['Независимая оценка квалификации выпускников СПО', 'Петрова Е. С.', 2024, [7]],
+    ['Подготовка студентов колледжа к демонстрационному экзамену', 'Сафина Г. М.', 2025, [7]],
+    ['Генеративный искусственный интеллект в профессиональном образовании: возможности и ограничения', 'Орлова В. Г., Белов И. Н.', 2024, [8]],
+    ['Нейросетевые инструменты в работе преподавателя колледжа', 'Морозов П. В.', 2025, [8]],
+    ['Учебная аналитика в среднем профессиональном образовании', 'Тимофеев С. С.', 2025, [9]],
+    ['Промпт-грамотность педагога: содержание и диагностика', 'Ковалёв Д. А.', 2026, [10]],
+    ['Этические аспекты использования искусственного интеллекта в образовании', 'Николаева Т. А.', 2026, [11]],
+    ['Цифровые компетенции и методическая готовность педагога: интегративная модель', 'Соколова А. В.', 2023, [1, 4]],
+    ['Электронные курсы и чат-боты в сопровождении студентов колледжа', 'Соколова А. В., Петрова Е. С.', 2024, [2, 6]],
+    ['Оценивание в колледже: от адаптивного тестирования к анализу цифрового следа', 'Соколова А. В.', 2025, [5, 7, 9]]
+  ];
+  var variants = Core.nameVariants('Соколова, Sokolova');
+  var cites = C.map(function (r, i) {
+    return {
+      id: 'demo_c' + (i + 1), t: r[0], a: r[1], y: r[2],
+      to: r[3].map(function (n) { return 'demo_p' + n; }),
+      self: Core.isSelf(r[1], variants)
+    };
+  });
+  cites.push({ id: 'demo_c41', own: 'demo_p13', t: pubs[12].t, a: pubs[12].a, y: 2026,
+    to: pubs[12].refs.slice(), self: true, selfManual: true, pending: true });
+  cites.push({ id: 'demo_c42', t: 'Цифровые ассистенты в образовательном процессе колледжа: опыт внедрения',
+    a: 'Зайцев А. П.', y: 2026, to: ['demo_p6'], self: false, pending: true });
+  return {
+    id: 'demo', name: 'Пример: Соколова А. В.', demo: true, names: 'Соколова, Sokolova',
+    pubs: pubs, cites: cites,
+    hist: [
+      { d: '2025-02-10', h: 4, hn: 3, p: 10, c: 30 },
+      { d: '2025-09-15', h: 4, hn: 4, p: 11, c: 37 },
+      { d: '2026-03-02', h: 5, hn: 4, p: 12, c: 43 }
+    ]
+  };
+}
+if (typeof module !== 'undefined') module.exports = makeDemoProfile;
+/* ===== store: account storage (db, private per person) + browser copy ===== */
+var Store = (function () {
+  'use strict';
+  var LS_KEY = 'hirsch-tracker-ws-v1';
+  var CHUNK = 60000;
+  var st = {
+    mode: 'pending',          // pending | account | local
+    db: null, uid: null, col: null,
+    rev: null, myRevs: {},
+    saving: false, queued: null, timer: null,
+    lastError: '', unsub: null,
+    onStatus: function () {}, onRemote: function () {}
+  };
+
+  function status(s, msg) { st.onStatus(s, msg || ''); }
+
+  function readLocal() {
+    try {
+      var raw = window.localStorage.getItem(LS_KEY);
+      if (!raw) return null;
+      var ws = JSON.parse(raw);
+      return ws && ws.profiles ? ws : null;
+    } catch (e) { return null; }
+  }
+  function writeLocal(ws) {
+    try { window.localStorage.setItem(LS_KEY, JSON.stringify(ws)); return true; } catch (e) { return false; }
+  }
+
+  function newRev() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  function pieces(str) {
+    var out = [], size = CHUNK, enc = (typeof TextEncoder !== 'undefined') ? new TextEncoder() : null;
+    var i = 0;
+    while (i < str.length) {
+      var part = str.slice(i, i + size);
+      if (enc && enc.encode(JSON.stringify(part)).length > 200000 && size > 4000) { size = Math.floor(size / 2); continue; }
+      out.push(part); i += part.length;
+    }
+    return out.length ? out : [''];
+  }
+
+  async function loadRemote() {
+    var meta = await st.col.doc('meta').get();
+    if (!meta.exists) return null;
+    var m = meta.data();
+    var n = m.n || 0, rev = m.rev;
+    var parts = [];
+    for (var k = 0; k < n; k++) parts.push(st.col.doc('c_' + rev + '_' + k).get());
+    var snaps = await Promise.all(parts);
+    var str = '';
+    for (var j = 0; j < snaps.length; j++) {
+      if (!snaps[j].exists) throw { code: 'incomplete', message: 'часть данных не найдена' };
+      str += snaps[j].data().s || '';
+    }
+    st.rev = rev;
+    var ws = JSON.parse(str);
+    return ws && ws.profiles ? ws : null;
+  }
+
+  async function cleanup(keepRev) {
+    try {
+      var snap = await st.col.get();
+      var dels = snap.docs.filter(function (d) {
+        return d.id.indexOf('c_') === 0 && d.id.indexOf('c_' + keepRev + '_') !== 0;
+      });
+      for (var i = 0; i < dels.length; i++) await st.col.doc(dels[i].id).delete();
+    } catch (e) { /* not critical */ }
+  }
+
+  async function writeRemote(ws) {
+    var str = JSON.stringify(ws);
+    var parts = pieces(str);
+    var rev = newRev();
+    st.myRevs[rev] = 1;
+    for (var k = 0; k < parts.length; k++) {
+      await st.col.doc('c_' + rev + '_' + k).set({ s: parts[k], k: k });
+    }
+    await st.col.doc('meta').set({ rev: rev, n: parts.length, updatedAt: ws.updatedAt || Date.now(), v: 1 });
+    var old = st.rev;
+    st.rev = rev;
+    if (old && old !== rev) cleanup(rev);
+  }
+
+  function retryable(e) { return e && (e.code === 'unavailable'); }
+
+  async function flush() {
+    if (st.saving || !st.queued) return;
+    var ws = st.queued; st.queued = null;
+    st.saving = true;
+    status('saving');
+    try {
+      if (st.mode === 'account') {
+        try { await writeRemote(ws); }
+        catch (e) {
+          if (retryable(e)) { await new Promise(function (r) { setTimeout(r, 600 + Math.random() * 900); }); await writeRemote(ws); }
+          else throw e;
+        }
+        status('account');
+      } else status('local');
+    } catch (e) {
+      st.lastError = (e && e.code) || 'error';
+      if (e && e.code === 'quota_exceeded') status('error', 'Хранилище заполнено. Удалите лишние профили или сохраните резервную копию.');
+      else if (e && e.code === 'invalid_argument') { st.mode = 'local'; status('local', 'Сохранять в аккаунт нельзя — данные остаются в этом браузере.'); }
+      else status('error', 'Не удалось сохранить в аккаунт. Данные сохранены в этом браузере, повторю при следующем изменении.');
+    } finally {
+      st.saving = false;
+      if (st.queued) flush();
+    }
+  }
+
+  /* public: schedule a save (debounced) */
+  function save(ws, immediate) {
+    ws.updatedAt = Date.now();
+    var okLocal = writeLocal(ws);
+    if (st.mode !== 'account') {
+      status(okLocal ? 'local' : 'error', okLocal ? '' : 'Браузер не даёт сохранить данные. Сделайте резервную копию.');
+      return;
+    }
+    st.queued = JSON.parse(JSON.stringify(ws));
+    clearTimeout(st.timer);
+    status('pending');
+    st.timer = setTimeout(flush, immediate ? 0 : 900);
+  }
+
+  function watch() {
+    try {
+      st.unsub = st.col.doc('meta').onSnapshot(function (snap) {
+        if (!snap.exists || snap.metadata.hasPendingWrites) return;
+        var m = snap.data();
+        if (m.rev && m.rev !== st.rev && !st.myRevs[m.rev]) st.onRemote(m);
+      }, function () { /* listener ended; page keeps working */ });
+    } catch (e) { /* ignore */ }
+  }
+
+  /* public: connect to the account store. Resolves {mode, remote} */
+  async function connect() {
+    if (!window.claude || typeof window.claude.use !== 'function') { st.mode = 'local'; status('local'); return { mode: 'local', remote: null }; }
+    var db = null, user = null;
+    try { db = await window.claude.use('db'); } catch (e) { db = null; }
+    try { user = await window.claude.use('user'); } catch (e) { user = null; }
+    var uid = null;
+    if (user) { try { uid = await user.id(); } catch (e) { uid = null; } }
+    if (!db || !uid) { st.mode = 'local'; status('local'); return { mode: 'local', remote: null }; }
+    st.db = db; st.uid = uid;
+    try { st.col = db.collection('data/users/' + uid); }
+    catch (e) { st.mode = 'local'; status('local'); return { mode: 'local', remote: null }; }
+    var remote = null;
+    try { remote = await loadRemote(); }
+    catch (e) {
+      if (e && (e.code === 'revoked' || e.code === 'not_granted' || e.code === 'capability_disabled')) {
+        st.mode = 'local'; status('local'); return { mode: 'local', remote: null };
+      }
+      remote = null;
+    }
+    st.mode = 'account';
+    status('account');
+    watch();
+    return { mode: 'account', remote: remote };
+  }
+
+  async function reloadRemote() { return loadRemote(); }
+
+  return {
+    readLocal: readLocal, writeLocal: writeLocal, connect: connect, save: save,
+    reloadRemote: reloadRemote, flush: flush,
+    get mode() { return st.mode; },
+    set onStatus(f) { st.onStatus = f; },
+    set onRemote(f) { st.onRemote = f; }
+  };
+})();
+/* ===== app: state, helpers, mutations ===== */
+var S = {
+  ws: null, tab: 'analysis', basis: 'all', target: null, sim: {}, simOn: false,
+  q: { pubs: '', cites: '' }, citeFilter: 'all', expanded: {}, showAllPlan: false,
+  undo: null, remoteMeta: null, flashId: null, usePending: true
+};
+
+function $(id) { return document.getElementById(id); }
+function h(tag, attrs) {
+  var e = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) {
+    var v = attrs[k];
+    if (v === null || v === undefined || v === false) return;
+    if (k === 'text') e.textContent = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k === 'class') e.className = v;
+    else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  });
+  for (var i = 2; i < arguments.length; i++) add(e, arguments[i]);
+  return e;
+}
+function add(e, c) {
+  if (c === null || c === undefined || c === false) return;
+  if (Array.isArray(c)) { c.forEach(function (x) { add(e, x); }); return; }
+  e.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c);
+}
+function V(t) { return h('span', { class: 'var', text: t || 'h' }); }   /* math variable, italic serif */
+function plural(n, forms) {
+  n = Math.abs(n) % 100; var n1 = n % 10;
+  if (n > 10 && n < 20) return forms[2];
+  if (n1 > 1 && n1 < 5) return forms[1];
+  if (n1 === 1) return forms[0];
+  return forms[2];
+}
+var W = {
+  cit: ['цитирование', 'цитирования', 'цитирований'],
+  citGen: ['цитирования', 'цитирований', 'цитирований'],
+  citIns: ['цитированием', 'цитированиями', 'цитированиями'],
+  pub: ['публикация', 'публикации', 'публикаций'],
+  pubIn: ['публикации', 'публикациях', 'публикациях'],
+  work: ['работа', 'работы', 'работ'],
+  workGen: ['работы', 'работ', 'работ'],
+  newPub: ['новая публикация', 'новые публикации', 'новых публикаций']
+};
+function nw(n, forms) { return n + ' ' + plural(n, forms); }
+function isoDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+var MONTHS = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+function fmtDate(s) {
+  var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return s;
+  return (+m[3]) + ' ' + MONTHS[+m[2] - 1] + ' ' + m[1];
+}
+function clip(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; }
+
+/* ---------- workspace ---------- */
+function freshWorkspace() {
+  return { v: 1, fresh: true, activeId: 'demo', profiles: [makeDemoProfile()], updatedAt: 0 };
+}
+function emptyProfile(name) {
+  return { id: Core.uid('p'), name: name || 'Мой профиль', names: '', pubs: [], cites: [], hist: [] };
+}
+function P() {
+  var ws = S.ws;
+  for (var i = 0; i < ws.profiles.length; i++) if (ws.profiles[i].id === ws.activeId) return ws.profiles[i];
+  ws.activeId = ws.profiles[0].id;
+  return ws.profiles[0];
+}
+function pubById(id) { var p = P(); for (var i = 0; i < p.pubs.length; i++) if (p.pubs[i].id === id) return p.pubs[i]; return null; }
+function citeById(id) { var p = P(); for (var i = 0; i < p.cites.length; i++) if (p.cites[i].id === id) return p.cites[i]; return null; }
+
+/* ---------- derived numbers ---------- */
+function derive() {
+  var p = P();
+  var counts = Core.computeCounts(p);
+  var published = p.pubs.filter(function (x) { return !x.pending; });
+  var all = [], ns = [], fa = [], fn = [], total = 0, totalNs = 0, futTotal = 0, futTotalNs = 0;
+  published.forEach(function (x) {
+    var r = counts[x.id];
+    all.push(r.all); ns.push(r.nonself); total += r.all; totalNs += r.nonself;
+  });
+  p.pubs.forEach(function (x) {
+    var r = counts[x.id];
+    fa.push(r.futAll); fn.push(r.futNonself); futTotal += r.futAll; futTotalNs += r.futNonself;
+  });
+  var hAll = Core.hIndex(all), hNs = Core.hIndex(ns);
+  var hFutAll = Core.hIndex(fa), hFutNs = Core.hIndex(fn);
+  var pendingPubs = p.pubs.length - published.length;
+  var pendingCites = p.cites.filter(function (c) { return c.pending && !c.own && c.to && c.to.length; }).length;
+  var hasPending = pendingPubs + pendingCites > 0;
+  var usePend = hasPending && S.usePending;
+  var hBasis = S.basis === 'nonself' ? hNs : hAll;          /* published only */
+  var hFut = S.basis === 'nonself' ? hFutNs : hFutAll;       /* after works in press come out */
+  var hBase = usePend ? hFut : hBasis;                       /* starting point of the plan */
+  var simAny = S.simOn && Object.keys(S.sim).some(function (k) { return S.sim[k] > 0; });
+  var items = Core.ranked(p, counts, S.basis, S.simOn ? S.sim : null, usePend);
+  var hNow = Core.hIndex(items.map(function (x) { return x.c; }));
+  var T = S.target && S.target > hNow ? S.target : hNow + 1;
+  var selfWorks = p.cites.filter(function (c) { return c.self; }).length;
+  var unlinked = p.cites.filter(function (c) { return !(c.to && c.to.length); }).length;
+  return {
+    p: p, counts: counts, items: items, hAll: hAll, hNs: hNs, hBasis: hBasis, hNow: hNow, simAny: simAny,
+    hFutAll: hFutAll, hFutNs: hFutNs, hFut: hFut, hBase: hBase, usePend: usePend, hasPending: hasPending,
+    pendingPubs: pendingPubs, pendingCites: pendingCites, published: published.length,
+    T: T, plan: Core.plan(items, T), ladder: Core.ladder(items, hNow, 5),
+    total: total, totalNs: totalNs, futTotal: futTotal, futTotalNs: futTotalNs,
+    i10: all.filter(function (c) { return c >= 10; }).length,
+    selfWorks: selfWorks, unlinked: unlinked
+  };
+}
+
+/* ---------- history (published works only) ---------- */
+function recordHistory(p) {
+  var pubs = p.pubs.filter(function (x) { return !x.pending; });
+  if (!pubs.length) return false;
+  var counts = Core.computeCounts(p), all = [], ns = [], total = 0;
+  pubs.forEach(function (x) { all.push(counts[x.id].all); ns.push(counts[x.id].nonself); total += counts[x.id].all; });
+  var e = { d: isoDate(new Date()), h: Core.hIndex(all), hn: Core.hIndex(ns), p: pubs.length, c: total, auto: true };
+  p.hist = p.hist || [];
+  var last = p.hist[p.hist.length - 1];
+  if (last && last.d === e.d) {
+    if (last.h === e.h && last.hn === e.hn && last.p === e.p && last.c === e.c) return false;
+    p.hist[p.hist.length - 1] = e; return true;
+  }
+  if (last && last.d > e.d) { return false; }
+  if (!last || last.h !== e.h || last.hn !== e.hn || last.p !== e.p || last.c !== e.c) { p.hist.push(e); return true; }
+  return false;
+}
+
+/* ---------- mutations ---------- */
+function commit(opts) {
+  opts = opts || {};
+  S.ws.fresh = false;
+  recordHistory(P());
+  Store.save(S.ws, opts.immediate);
+  renderAll();
+}
+function keepUndo(message) {
+  S.undo = { profileId: P().id, data: JSON.stringify(P()) };
+  toast(message, true);
+}
+function doUndo() {
+  if (!S.undo) return;
+  var data = JSON.parse(S.undo.data);
+  var i = S.ws.profiles.findIndex(function (x) { return x.id === S.undo.profileId; });
+  if (i === -1) S.ws.profiles.push(data); else S.ws.profiles[i] = data;
+  S.ws.activeId = data.id;
+  S.undo = null;
+  hideToast();
+  commit();
+}
+
+var toastTimer = null;
+function toast(message, undoable) {
+  /* an open modal dialog sits in the top layer, so the toast must live inside it to be seen */
+  var host = document.querySelector('dialog[open]') || document.body;
+  if ($('toast').parentNode !== host) host.appendChild($('toast'));
+  $('toastText').textContent = message;
+  $('toastUndo').hidden = !undoable;
+  $('toast').hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, undoable ? 9000 : 3500);
+}
+function hideToast() { $('toast').hidden = true; }
+
+function confirmBox(title, text, yesLabel) {
+  return new Promise(function (resolve) {
+    var d = $('dlgConfirm');
+    $('cfTitle').textContent = title;
+    $('cfText').textContent = text;
+    $('cfYes').textContent = yesLabel || 'Да';
+    d.returnValue = '';
+    function done() { d.removeEventListener('close', done); resolve(d.returnValue === 'yes'); }
+    d.addEventListener('close', done);
+    d.showModal();
+  });
+}
+
+/* make a pub/cite record from parsed fields */
+function newPub(r, pending) {
+  var pub = { id: Core.uid('b'), t: String(r.t || '').trim(), y: r.y || null, v: r.v || '', a: r.a || '', doi: r.doi || '', m: (r.c === null || r.c === undefined || r.c === '') ? null : Math.max(0, +r.c || 0) };
+  if (pending) pub.pending = true;
+  return pub;
+}
+/* the citing record of my own publication: "this work of mine cites those works of mine" */
+function syncOwnCite(p, pub) {
+  var refs = (pub.refs || []).filter(function (id) { return id !== pub.id && p.pubs.some(function (x) { return x.id === id; }); });
+  pub.refs = refs;
+  var own = null;
+  for (var i = 0; i < p.cites.length; i++) if (p.cites[i].own === pub.id) { own = p.cites[i]; break; }
+  if (!refs.length) { if (own) p.cites = p.cites.filter(function (c) { return c !== own; }); return; }
+  if (!own) { own = { id: Core.uid('c'), own: pub.id }; p.cites.push(own); }
+  own.t = pub.t; own.a = pub.a || ''; own.y = pub.y || null; own.to = refs.slice();
+  own.self = true; own.selfManual = true; own.pending = !!pub.pending;
+}
+function setPubPending(p, pub, pending) {
+  pub.pending = !!pending;
+  if (!pending && !pub.y) pub.y = new Date().getFullYear();
+  p.cites.forEach(function (c) {
+    if (c.own !== pub.id) return;
+    c.y = pub.y || c.y;
+    if (pending) c.pending = true; else publishCite(p, c);
+  });
+}
+/* A citing work in press has come out. If a cited publication's count was typed in by hand
+   and is larger than its list of citing works, the new citation is not in that number yet:
+   add one so the count does not drop back below the forecast. */
+function publishCite(p, c) {
+  if (!c.pending) return;
+  (c.to || []).forEach(function (pid) {
+    var pub = null;
+    for (var i = 0; i < p.pubs.length; i++) if (p.pubs[i].id === pid) { pub = p.pubs[i]; break; }
+    if (!pub || pub.pending || pub.m === null || pub.m === undefined || pub.m === '') return;
+    var linked = p.cites.filter(function (x) { return !x.pending && x.to && x.to.indexOf(pid) !== -1; }).length;
+    if (+pub.m > linked) pub.m = +pub.m + 1;
+  });
+  c.pending = false;
+}
+function addCiteRecord(p, r, toIds, variants, pending) {
+  /* merge with an existing citing work with the same title (and compatible year) */
+  var key = Core.titleKey(r.t);
+  var ex = null;
+  for (var i = 0; i < p.cites.length; i++) {
+    var c = p.cites[i];
+    if (Core.titleKey(c.t) === key && (!c.y || !r.y || c.y === r.y)) { ex = c; break; }
+  }
+  if (ex) {
+    toIds.forEach(function (id) { if (ex.to.indexOf(id) === -1) ex.to.push(id); });
+    if (ex.pending && !pending && !ex.own) publishCite(p, ex);
+    if (!ex.y && r.y) ex.y = r.y;
+    if (!ex.a && r.a) { ex.a = r.a; if (!ex.selfManual) ex.self = Core.isSelf(ex.a, variants); }
+    return { merged: true, cite: ex };
+  }
+  var cite = { id: Core.uid('c'), t: String(r.t || '').trim(), a: r.a || '', y: r.y || null, to: toIds.slice(), self: Core.isSelf(r.a, variants) };
+  if (pending) cite.pending = true;
+  p.cites.push(cite);
+  return { merged: false, cite: cite };
+}
+function recheckSelf(p) {
+  var v = Core.nameVariants(p.names);
+  var changed = 0;
+  p.cites.forEach(function (c) {
+    if (c.selfManual) return;
+    var s = Core.isSelf(c.a, v);
+    if (!!c.self !== s) { c.self = s; changed++; }
+  });
+  return changed;
+}
+/* ===== analysis view: hero, next step, Hirsch square, plan ===== */
+var SVGNS = 'http://www.w3.org/2000/svg';
+function sv(tag, attrs, text) {
+  var e = document.createElementNS(SVGNS, tag);
+  var style = '';
+  if (attrs) Object.keys(attrs).forEach(function (k) {
+    var v = attrs[k];
+    if (v === null || v === undefined) return;
+    /* CSS variables go through style, not presentation attributes */
+    if (typeof v === 'string' && v.indexOf('var(') !== -1) style += k + ':' + v + ';';
+    else e.setAttribute(k, v);
+  });
+  if (style) e.setAttribute('style', style);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function lineKey(stroke, dash, w) {
+  var s = h('span', { 'aria-hidden': 'true', style: 'display:inline-flex' });
+  s.innerHTML = '<svg width="' + w + '" height="10" viewBox="0 0 ' + w + ' 10"><line x1="1" y1="5" x2="' + (w - 1) + '" y2="5" style="stroke:' + stroke + ';stroke-width:2' + (dash ? ';stroke-dasharray:' + dash : '') + '"/></svg>';
+  return s;
+}
+
+function renderAnalysis() {
+  var root = $('view-analysis');
+  root.textContent = '';
+  var d = derive();
+  if (!d.p.pubs.length) {
+    root.appendChild(h('div', { class: 'empty' },
+      h('h3', { text: 'Здесь появится ваш квадрат Хирша' }),
+      h('p', { text: 'Добавьте свои публикации: вставьте список названий или загрузите файл из eLIBRARY, Google Scholar, Scopus или Excel. Потом привяжите к ним цитирующие работы или укажите число цитирований.' }),
+      h('div', { class: 'toolbar', style: 'justify-content:center;margin-top:14px' },
+        h('button', { class: 'btn primary', type: 'button', onclick: function () { openImport('pubs'); } }, 'Загрузить публикации'),
+        h('button', { class: 'btn', type: 'button', onclick: function () { openPubDialog(null); } }, 'Добавить одну'))
+    ));
+    return;
+  }
+  root.appendChild(renderHero(d));
+  root.appendChild(renderChartPanel(d));
+  root.appendChild(renderPlan(d));
+}
+
+/* ---------- hero ---------- */
+function renderHero(d) {
+  var hB = d.hBasis;
+  var hStart = d.usePend ? d.hFut : hB;
+  var next = Core.plan(Core.ranked(d.p, d.counts, S.basis, null, d.usePend), hStart + 1);
+  var basisName = S.basis === 'nonself' ? 'без самоцитирований' : 'все цитирования';
+  var nsNow = S.basis === 'nonself' ? d.hAll : d.hNs;
+  var nsFut = S.basis === 'nonself' ? d.hFutAll : d.hFutNs;
+  var works = d.pendingPubs + d.pendingCites;
+  var totalNow = S.basis === 'nonself' ? d.totalNs : d.total;
+  var totalFut = S.basis === 'nonself' ? d.futTotalNs : d.futTotal;
+
+  var forecast = null;
+  if (d.hasPending) {
+    forecast = d.usePend
+      ? h('div', { class: 'forecast' },
+          h('span', { class: 'fc-badge', title: 'Прогноз' }, '→ ', V(), ' = ' + d.hFut),
+          h('span', { text: (d.hFut > hB ? 'после выхода ' : 'не изменится после выхода ') + nw(works, W.workGen) + ' в печати' }))
+      : h('div', { class: 'forecast muted' }, h('span', { text: nw(works, W.work) + ' в печати не ' + (works === 1 ? 'учитывается' : 'учитываются') }));
+  }
+
+  var left = h('div', { class: 'panel' },
+    h('div', { class: 'eyebrow', text: 'Индекс Хирша · ' + basisName }),
+    h('div', { class: 'figure-row' },
+      h('span', { class: 'figure-eq' }, 'h = '),
+      h('span', { class: 'figure', text: String(hB) })),
+    forecast,
+    h('div', { class: 'figure-delta' },
+      S.basis === 'nonself' ? 'С самоцитированиями: ' : 'Без самоцитирований: ',
+      h('b', { text: String(nsNow) }),
+      d.usePend && nsFut !== nsNow ? h('span', { class: 'muted', text: ' → ' + nsFut + ' в перспективе' }) : null),
+    h('div', { class: 'stats' },
+      h('span', null, h('b', { text: String(d.published) }), ' ', plural(d.published, W.pub),
+        d.pendingPubs ? h('span', { class: 'muted', text: ' + ' + d.pendingPubs + ' в печати' }) : null),
+      h('span', null, h('b', { text: String(totalNow) }), ' ', plural(totalNow, W.cit),
+        d.usePend && totalFut > totalNow ? h('span', { class: 'muted', text: ' + ' + (totalFut - totalNow) + ' ожидается' }) : null),
+      h('span', null, h('b', { text: String(d.p.cites.length) }), ' ', plural(d.p.cites.length, ['цитирующая работа', 'цитирующие работы', 'цитирующих работ'])),
+      h('span', null, 'i10: ', h('b', { text: String(d.i10) }))),
+    h('div', { class: 'basis' },
+      h('span', { text: 'Считать по' }),
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'Основа расчёта' },
+        h('button', { type: 'button', 'aria-pressed': String(S.basis === 'all'), onclick: function () { setBasis('all'); } }, 'всем цитированиям'),
+        h('button', { type: 'button', 'aria-pressed': String(S.basis === 'nonself'), onclick: function () { setBasis('nonself'); } }, 'без самоцитирований'))),
+    d.hasPending ? h('div', { class: 'basis' },
+      h('span', { text: 'Работы в печати' }),
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'Работы в печати' },
+        h('button', { type: 'button', 'aria-pressed': String(S.usePending), onclick: function () { setPending(true); } }, 'учитывать в прогнозе'),
+        h('button', { type: 'button', 'aria-pressed': String(!S.usePending), onclick: function () { setPending(false); } }, 'не учитывать'))) : null
+  );
+
+  var right = h('div', { class: 'panel next' });
+  right.appendChild(h('div', { class: 'eyebrow', text: 'Следующий шаг' }));
+  if (d.usePend && d.hFut > hB) {
+    right.appendChild(h('p', { class: 'small', style: 'margin:0 0 4px;color:var(--blue-ink)' },
+      'Работы в печати поднимут индекс до ', V(), ' = ' + d.hFut + '. Дальше:'));
+  }
+  right.appendChild(h('h3', null, 'До ', V(), ' = ' + next.T + ' не хватает ' + nw(next.need, W.citGen)));
+  var parts = [];
+  if (next.papers) parts.push('Нужно добрать цитирования в ' + nw(next.papers, W.pubIn) + (d.usePend ? ' сверх ожидаемых.' : '.'));
+  if (next.newPubs) parts.push('Публикаций пока меньше цели: понадобится ' + nw(next.newPubs, W.newPub) + ' с ' + nw(next.T, W.citIns) + ' у каждой.');
+  if (!parts.length) parts.push('Цель уже достигнута.');
+  right.appendChild(h('p', { class: 'lede', text: parts.join(' ') }));
+  var list = h('ul', { class: 'need-list' });
+  next.rows.filter(function (r) { return r.need > 0; }).slice(0, 5).forEach(function (r) {
+    var pub = pubById(r.id);
+    list.appendChild(h('li', null,
+      h('span', { class: 'rank', text: '№' + r.rank }),
+      h('span', { class: 't' }, clip(pub ? pub.t : '', 110), pub && pub.pending ? h('span', null, ' ', h('span', { class: 'pill pend', text: 'в печати' })) : null),
+      h('span', { class: 'pill need', text: '+' + r.need })));
+  });
+  right.appendChild(list);
+  var more = next.rows.filter(function (r) { return r.need > 0; }).length - 5;
+  if (more > 0) right.appendChild(h('p', { class: 'small muted', text: 'И ещё ' + nw(more, W.pub) + ' — см. план ниже.' }));
+  if (next.alternatives.length) {
+    var alt = pubById(next.alternatives[0]);
+    right.appendChild(h('p', { class: 'small', style: 'margin:10px 0 0;color:var(--ink-2)' },
+      'Равноценная замена: у «' + clip(alt ? alt.t : '', 70) + '» тоже ' + nw(next.tieC, W.cit) +
+      (next.alternatives.length > 1 ? ' (и ещё у ' + nw(next.alternatives.length - 1, W.pubIn).replace('публикациях', 'публикаций') + ')' : '') +
+      ', её можно поднять вместо статьи на границе.'));
+  }
+  return h('div', { class: 'hero' }, left, right);
+}
+
+function setPending(v) { S.usePending = v; S.target = null; renderAnalysis(); }
+function setBasis(b) { S.basis = b; S.target = null; S.sim = {}; renderAnalysis(); }
+
+/* ---------- chart ---------- */
+function renderChartPanel(d) {
+  var panel = h('div', { class: 'panel chart-panel' });
+  var targets = h('div', { class: 'targets', role: 'group', 'aria-label': 'Цель' });
+  d.ladder.forEach(function (pl) {
+    targets.appendChild(h('button', {
+      class: 'tchip', type: 'button', 'aria-pressed': String(pl.T === d.T),
+      onclick: function () { S.target = pl.T; renderAnalysis(); }
+    },
+      h('span', { class: 'k' }, V(), ' = ' + pl.T),
+      h('span', { class: 'v', text: '+' + nw(pl.citesOnExisting, W.cit) + (pl.newPubs ? ' и ' + pl.newPubs + ' нов.' : '') })));
+  });
+  panel.appendChild(h('div', { class: 'chart-head' },
+    h('div', null,
+      h('h2', { text: 'Квадрат Хирша' }),
+      h('p', null, 'Каждая клетка — одно цитирование, публикации стоят по убыванию. ', V(), ' — сторона самого большого квадрата под столбиками, его угол лежит на диагонали.'))));
+  var box = h('div', { class: 'chart-scroll', id: 'chartBox' });
+  var note = h('p', { class: 'chart-note', id: 'chartNote' });
+  var legend = h('div', { class: 'legend' },
+    h('span', null, h('i', { class: 'sw', style: 'background:var(--blue)' }), d.usePend ? 'Ядро Хирша (прогноз)' : 'Ядро Хирша'),
+    h('span', null, h('i', { class: 'sw', style: 'background:var(--blue-soft)' }), 'Вне ядра'),
+    d.usePend ? h('span', null, h('i', { class: 'sw', style: 'background:var(--blue-wash);border:1.5px dashed var(--blue)' }), 'Ожидается (в печати)') : null,
+    h('span', null, h('i', { class: 'sw', style: 'background:var(--red-wash);border:1.5px dashed var(--red)' }), 'Не хватает до цели'),
+    S.simOn ? h('span', null, h('i', { class: 'sw', style: 'border:1.5px dotted var(--ink-2)' }), 'Моделирование') : null);
+  panel.appendChild(h('div', { class: 'chart-grid' },
+    h('div', { class: 'chart-col' }, box, note),
+    h('div', { class: 'side-col' },
+      h('div', { class: 'eyebrow', text: 'Цель' }), targets,
+      h('p', { class: 'small', style: 'margin:0;color:var(--ink-2)', text: 'Под каждой целью — сколько цитирований не хватает всего.' }),
+      legend)));
+  requestAnimationFrame(function () { drawSquare(box, d, note); });
+  return panel;
+}
+
+function roundTop(x, y, w, hh, r) {
+  r = Math.max(0, Math.min(r, w / 2, hh));
+  return 'M' + x + ',' + (y + hh) + 'V' + (y + r) + 'Q' + x + ',' + y + ' ' + (x + r) + ',' + y +
+    'H' + (x + w - r) + 'Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) + 'V' + (y + hh) + 'Z';
+}
+
+function drawSquare(box, d, note) {
+  box.textContent = '';
+  var items = d.items, n = items.length, T = d.T;
+  var hCur = d.hBasis;                        /* published works only */
+  var hSq = d.usePend ? d.hFut : d.hBasis;    /* the square shown: forecast when works in press count */
+  var fut = d.usePend && d.hFut > d.hBasis;
+  var hNow = d.hNow;                          /* with simulation */
+  var CAP = 60;
+  var xMax = Math.max(n, T), shown = Math.min(xMax, CAP);
+  var maxC = 0; items.forEach(function (it) { if (it.c > maxC) maxC = it.c; });
+  var yMax = Math.max(T + 2, hNow + 2, 6, Math.min(maxC, Math.max(2 * T, T + 6)));
+  var avail = Math.max(280, box.clientWidth || 700);
+  var ml = fut ? 66 : 54, mr = 14, mt = 28, mb = 44;
+  var u = Math.floor((avail - ml - mr) / shown);
+  u = Math.min(u, 46, Math.max(8, Math.floor(500 / yMax)));
+  u = Math.max(u, 8);
+  var Wd = ml + shown * u + mr, Ht = mt + yMax * u + mb;
+  function X(i) { return ml + i * u; }
+  function Y(v) { return mt + (yMax - v) * u; }
+  var svg = sv('svg', { width: Wd, height: Ht, viewBox: '0 0 ' + Wd + ' ' + Ht, role: 'img',
+    'aria-label': 'Квадрат Хирша: ' + n + ' публикаций по рангу, h = ' + hCur + (fut ? ', прогноз h = ' + hSq : '') + ', цель h = ' + T });
+
+  /* graph paper */
+  var g = sv('g', { 'shape-rendering': 'crispEdges' });
+  for (var k = 0; k <= shown; k++) g.appendChild(sv('line', { x1: X(k), x2: X(k), y1: Y(0), y2: Y(yMax), stroke: k % 5 === 0 ? 'var(--grid-major)' : 'var(--grid)', 'stroke-width': 1 }));
+  for (var v = 0; v <= yMax; v++) g.appendChild(sv('line', { x1: X(0), x2: X(shown), y1: Y(v), y2: Y(v), stroke: v % 5 === 0 ? 'var(--grid-major)' : 'var(--grid)', 'stroke-width': 1 }));
+  svg.appendChild(g);
+
+  /* the h square (dashed when it is a forecast) */
+  if (hSq > 0) {
+    svg.appendChild(sv('rect', { x: X(0), y: Y(hSq), width: hSq * u, height: hSq * u, fill: 'var(--sq-fill)', stroke: 'var(--blue)', 'stroke-width': 1.5, 'stroke-dasharray': fut ? '7 4' : null }));
+  }
+  if (S.simOn && hNow > hSq) {
+    svg.appendChild(sv('rect', { x: X(0), y: Y(hNow), width: hNow * u, height: hNow * u, fill: 'none', stroke: 'var(--ink-2)', 'stroke-width': 1.5, 'stroke-dasharray': '1.5 3' }));
+  }
+
+  var needMap = {};
+  d.plan.rows.forEach(function (r) { needMap[r.id] = r.need; });
+  var altMap = {};
+  d.plan.alternatives.forEach(function (id) { altMap[id] = 1; });
+
+  /* columns: published (solid) · in press (dashed) · simulation (dotted) · missing for the target (red) */
+  var cols = sv('g');
+  var clipped = 0, starred = 0;
+  for (var i = 1; i <= Math.min(n, shown); i++) {
+    var it = items[i - 1];
+    var cx = X(i - 1) + 1, cw = u - 2;
+    var base = it.base, pend = it.pend || 0, addv = it.add, tot = it.c;
+    if (it.pending) starred++;
+    var hb = Math.min(base, yMax);
+    if (hb > 0) {
+      var isClip = base > yMax;
+      var fill = i <= hSq ? 'var(--blue)' : 'var(--blue-soft)';
+      var topRound = (pend > 0 || isClip) ? 0 : Math.min(4, cw / 3);
+      cols.appendChild(sv('path', { d: roundTop(cx, Y(hb), cw, hb * u, topRound), fill: fill }));
+      if (isClip) {
+        clipped++;
+        var zy = Y(yMax) + Math.min(10, u);
+        cols.appendChild(sv('path', { d: 'M' + (cx - 1) + ',' + zy + 'l' + (cw / 3) + ',-4l' + (cw / 3) + ',8l' + (cw / 3 + 2) + ',-4', fill: 'none', stroke: 'var(--sheet)', 'stroke-width': 2.5 }));
+        cols.appendChild(sv('text', { x: cx + cw / 2, y: Y(yMax) - 6, 'text-anchor': 'middle', 'font-size': 11, 'font-family': 'var(--font-data)', fill: 'var(--ink-2)' }, String(base + pend)));
+      }
+    }
+    if (pend > 0 && base < yMax) drawCells(cols, cx, cw, base, Math.min(base + pend, yMax) - base, Y, u, 'var(--blue-wash)', 'var(--blue)', '4 2');
+    if (addv > 0 && base + pend < yMax) drawCells(cols, cx, cw, base + pend, Math.min(base + pend + addv, yMax) - base - pend, Y, u, 'none', 'var(--ink-2)', '1.5 2.5');
+    var need = needMap[it.id] || 0;
+    if (need > 0) drawCells(cols, cx, cw, tot, need, Y, u, 'var(--red-wash)', 'var(--red)', '4 2');
+  }
+  /* new publications needed (T > n) */
+  for (var j = n + 1; j <= Math.min(T, shown); j++) {
+    drawCells(cols, X(j - 1) + 1, u - 2, 0, T, Y, u, 'var(--red-wash)', 'var(--red)', '4 2');
+  }
+  svg.appendChild(cols);
+
+  /* diagonal + target */
+  var L = Math.min(shown, yMax);
+  svg.appendChild(sv('line', { x1: X(0), y1: Y(0), x2: X(L), y2: Y(L), stroke: 'var(--ink-3)', 'stroke-width': 1 }));
+  svg.appendChild(sv('rect', { x: X(0), y: Y(T), width: Math.min(T, shown) * u, height: T * u, fill: 'none', stroke: 'var(--red)', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }));
+  var lbl = sv('text', { x: X(Math.min(T, shown)) - 2, y: Y(T) - 7, 'text-anchor': 'end', 'font-size': 13, fill: 'var(--red-ink)', 'font-family': 'var(--font-ui)' });
+  lbl.appendChild(sv('tspan', null, 'цель '));
+  lbl.appendChild(sv('tspan', { 'font-family': 'var(--font-display)', 'font-style': 'italic', 'font-size': 15 }, 'h'));
+  lbl.appendChild(sv('tspan', null, ' = ' + T));
+  svg.appendChild(lbl);
+  if (hSq > 0) {
+    svg.appendChild(sv('circle', { cx: X(hSq), cy: Y(hSq), r: 4, fill: 'var(--blue)', stroke: 'var(--sheet)', 'stroke-width': 2 }));
+  }
+
+  /* axes; h is marked on the y axis instead of a tick */
+  var ax = sv('g', { 'font-size': 11, 'font-family': 'var(--font-data)', fill: 'var(--ink-3)' });
+  ax.appendChild(sv('line', { x1: X(0), x2: X(shown), y1: Y(0), y2: Y(0), stroke: 'var(--ink-3)', 'stroke-width': 1 }));
+  var stepX = u >= 18 ? 1 : (u >= 11 ? 2 : 5);
+  for (var r = 1; r <= shown; r++) {
+    var isPend = items[r - 1] && items[r - 1].pending;
+    if (r !== 1 && r % stepX !== 0 && r !== hSq && !isPend) continue;
+    var strong = r === hSq;
+    ax.appendChild(sv('text', { x: X(r - 0.5), y: Y(0) + 15, 'text-anchor': 'middle', fill: strong ? 'var(--blue-ink)' : null, 'font-weight': strong ? 700 : null }, String(r) + (isPend ? '*' : '')));
+  }
+  var curLabel = fut && Math.abs(hSq - hCur) * u >= 13 && hCur > 0;
+  var stepY = u >= 16 ? 1 : (u >= 10 ? 2 : 5);
+  for (var t = 0; t <= yMax; t += stepY) {
+    if (hSq > 0 && Math.abs(t - hSq) * u < 13) continue;
+    if (curLabel && Math.abs(t - hCur) * u < 13) continue;
+    ax.appendChild(sv('text', { x: X(0) - 7, y: Y(t) + 4, 'text-anchor': 'end' }, String(t)));
+  }
+  if (hSq > 0) {
+    var hl = sv('text', { x: X(0) - 7, y: Y(hSq) + 5, 'text-anchor': 'end', 'font-size': 13, 'font-family': 'var(--font-ui)', 'font-weight': 600, fill: 'var(--blue-ink)' });
+    hl.appendChild(sv('tspan', { 'font-family': 'var(--font-display)', 'font-style': 'italic', 'font-weight': 400, 'font-size': 15 }, 'h'));
+    hl.appendChild(sv('tspan', null, ' = ' + hSq));
+    ax.appendChild(hl);
+    ax.appendChild(sv('line', { x1: X(0) - 4, x2: X(0), y1: Y(hSq), y2: Y(hSq), stroke: 'var(--blue)', 'stroke-width': 2 }));
+  }
+  if (curLabel) {
+    ax.appendChild(sv('text', { x: X(0) - 7, y: Y(hCur) + 4, 'text-anchor': 'end', 'font-family': 'var(--font-ui)', fill: 'var(--ink-2)' }, 'сейчас ' + hCur));
+    ax.appendChild(sv('line', { x1: X(0) - 4, x2: X(0), y1: Y(hCur), y2: Y(hCur), stroke: 'var(--ink-3)', 'stroke-width': 2 }));
+  }
+  ax.appendChild(sv('text', { x: X(0), y: Ht - 8, 'font-family': 'var(--font-ui)', 'font-size': 12 }, 'Ранг публикации →'));
+  ax.appendChild(sv('text', { x: 4, y: 14, 'font-family': 'var(--font-ui)', 'font-size': 12 }, '↑ Цитирований'));
+  svg.appendChild(ax);
+
+  /* hit areas */
+  var hits = sv('g');
+  var lastCol = Math.min(Math.max(n, T), shown);
+  for (var q = 1; q <= lastCol; q++) {
+    (function (rank) {
+      var rect = sv('rect', { class: 'hit', x: X(rank - 1), y: Y(yMax), width: u, height: yMax * u, tabindex: 0 });
+      var info = colInfo(d, rank, needMap, altMap, hSq, fut);
+      rect.setAttribute('aria-label', info.aria);
+      rect.addEventListener('pointerenter', function (e) { showTip(info, e.clientX, e.clientY); });
+      rect.addEventListener('pointermove', function (e) { showTip(info, e.clientX, e.clientY); });
+      rect.addEventListener('pointerleave', hideTip);
+      rect.addEventListener('focus', function () { var b = rect.getBoundingClientRect(); showTip(info, b.right, b.top + 40); });
+      rect.addEventListener('blur', hideTip);
+      rect.addEventListener('click', function () { if (info.id) flashRow(info.id); });
+      rect.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && info.id) { e.preventDefault(); flashRow(info.id); } });
+      hits.appendChild(rect);
+    })(q);
+  }
+  svg.appendChild(hits);
+  box.appendChild(svg);
+
+  var notes = [];
+  if (fut) notes.push('Пунктирный квадрат — прогноз после выхода работ в печати; сейчас h = ' + hCur + '.');
+  if (starred) notes.push('* — ваша работа в печати.');
+  if (xMax > shown) notes.push('Показаны первые ' + shown + ' публикаций из ' + n + '; у остальных меньше всего цитирований.');
+  if (clipped) notes.push('Столбцы выше ' + yMax + ' обрезаны, их значения подписаны сверху.');
+  note.textContent = notes.join(' ');
+  note.hidden = !notes.length;
+}
+
+/* a stack of cells drawn as one dashed box with faint separators between cells */
+function drawCells(g, cx, cw, from, cnt, Y, u, fill, stroke, dash) {
+  if (cnt <= 0) return;
+  g.appendChild(sv('rect', { x: cx + 0.75, y: Y(from + cnt) + 0.75, width: cw - 1.5, height: cnt * u - 1.5, fill: fill, stroke: stroke, 'stroke-width': 1.5, 'stroke-dasharray': dash }));
+  if (u >= 10) for (var k = 1; k < cnt; k++) {
+    g.appendChild(sv('line', { x1: cx + 3, x2: cx + cw - 3, y1: Y(from + k), y2: Y(from + k), stroke: stroke, 'stroke-opacity': 0.45, 'stroke-width': 1 }));
+  }
+}
+
+function colInfo(d, rank, needMap, altMap, hSq, fut) {
+  var it = d.items[rank - 1];
+  if (!it) {
+    return { id: null, value: 'Новая публикация', title: 'Публикаций меньше цели', status: 'Для h = ' + d.T + ' нужна ещё одна статья с ' + nw(d.T, W.citIns) + '.', aria: 'Ранг ' + rank + ': нужна новая публикация с ' + d.T + ' цитированиями' };
+  }
+  var pub = pubById(it.id);
+  var need = needMap[it.id] || 0;
+  var status;
+  if (need > 0) status = 'До h = ' + d.T + ' не хватает ' + nw(need, W.citGen);
+  else if (rank <= d.T) status = 'Для цели h = ' + d.T + ' цитирований хватает';
+  else if (altMap[it.id]) status = 'Равноценная замена для статьи на границе цели';
+  else status = 'Не входит в план для h = ' + d.T;
+  if (rank <= hSq) status = (fut ? 'В ядре Хирша по прогнозу. ' : 'В ядре Хирша. ') + status;
+  var value;
+  if (it.pending) value = 'в печати, ожидается ' + nw(it.pend, W.cit);
+  else value = nw(it.base, W.cit) + (it.pend ? ' + ' + it.pend + ' ожидается' : '');
+  if (it.add) value += ' + ' + it.add + ' в модели';
+  return { id: it.id, value: '№' + rank + ' · ' + value, title: clip(pub ? pub.t : '', 140), status: status,
+    aria: 'Ранг ' + rank + ', ' + value + '. ' + (pub ? pub.t : '') + '. ' + status };
+}
+
+function showTip(info, x, y) {
+  var tip = $('tip');
+  tip.textContent = '';
+  tip.appendChild(h('div', { class: 'v', text: info.value }));
+  tip.appendChild(h('div', { class: 't', text: info.title }));
+  tip.appendChild(h('div', { class: 't', style: 'margin-top:4px;color:var(--ink)', text: info.status }));
+  tip.hidden = false;
+  var r = tip.getBoundingClientRect();
+  var left = x + 14, top = y + 14;
+  if (left + r.width > window.innerWidth - 8) left = x - r.width - 14;
+  if (top + r.height > window.innerHeight - 8) top = y - r.height - 14;
+  tip.style.left = Math.max(8, left) + 'px';
+  tip.style.top = Math.max(8, top) + 'px';
+}
+function hideTip() { $('tip').hidden = true; }
+
+function flashRow(id) {
+  S.flashId = id;
+  var row = document.querySelector('[data-plan-row="' + id + '"]');
+  if (!row && !S.showAllPlan) { S.showAllPlan = true; renderAnalysis(); row = document.querySelector('[data-plan-row="' + id + '"]'); }
+  if (!row) return;
+  document.querySelectorAll('tr.flash').forEach(function (x) { x.classList.remove('flash'); });
+  row.classList.add('flash');
+  row.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  setTimeout(function () { row.classList.remove('flash'); }, 2200);
+}
+
+/* ---------- plan table + simulation ---------- */
+function renderPlan(d) {
+  var sec = h('div', { class: 'panel section' });
+  var pl = d.plan;
+  var toggle = h('button', { class: 'btn sm' + (S.simOn ? ' primary' : ''), type: 'button', 'aria-pressed': String(S.simOn),
+    onclick: function () { S.simOn = !S.simOn; if (!S.simOn) S.sim = {}; S.target = null; renderAnalysis(); } },
+    S.simOn ? 'Выключить моделирование' : 'Моделировать «что если»');
+  sec.appendChild(h('div', { class: 'section-head' }, h('h2', null, 'План для ', V(), ' = ' + pl.T), toggle));
+
+  var sum = [];
+  if (pl.citesOnExisting > 0) sum.push('Нужно ещё ' + nw(pl.citesOnExisting, W.cit) + ' в ' + nw(pl.papers, W.pubIn) + '.');
+  if (pl.newPubs > 0) sum.push((pl.citesOnExisting > 0 ? 'Кроме того, понадобится ' : 'Понадобится ') + nw(pl.newPubs, W.newPub) + ' с ' + nw(pl.T, W.citIns) + ' у каждой.');
+  sec.appendChild(h('p', { style: 'margin:0 0 6px;color:var(--ink-2)', text: sum.join(' ') + ' Всего до цели: ' + nw(pl.need, W.cit) + '.' }));
+  if (d.usePend) {
+    var exp = (S.basis === 'nonself' ? d.futTotalNs - d.totalNs : d.futTotal - d.total);
+    sec.appendChild(h('p', { class: 'small', style: 'margin:0 0 8px;color:var(--blue-ink)',
+      text: 'План уже учитывает работы в печати: они добавят ' + nw(exp, W.cit) + '. Считается только то, чего не хватит после их выхода.' }));
+  }
+  if (pl.alternatives.length) {
+    var names = pl.alternatives.slice(0, 3).map(function (id) { var p = pubById(id); return '«' + clip(p ? p.t : '', 60) + '»'; }).join(', ');
+    sec.appendChild(h('p', { class: 'small', style: 'margin:0 0 10px;color:var(--ink-2)',
+      text: 'Равноценная замена: на границе стоят статьи с ' + nw(pl.tieC, W.citIns) + '. Вместо отмеченных красным можно поднять ' + names + (pl.alternatives.length > 3 ? ' и др.' : '') + ' — выберите ту, которую проще продвигать.' }));
+  }
+
+  if (S.simOn) {
+    var added = 0; Object.keys(S.sim).forEach(function (k) { added += S.sim[k] || 0; });
+    sec.appendChild(h('div', { class: 'sim-bar' },
+      h('span', null, 'Моделирование: добавлено ' + nw(added, W.cit) + ' → ', V(), ' = ', h('b', { text: String(d.hNow) }), ' (без моделирования ' + d.hBase + ').'),
+      h('span', { class: 'small muted', text: 'Числа не сохраняются, это только расчёт.' }),
+      h('button', { class: 'btn sm', type: 'button', onclick: function () { S.sim = {}; S.target = null; renderAnalysis(); } }, 'Сбросить')));
+  }
+
+  var needMap = {}; pl.rows.forEach(function (r) { needMap[r.id] = r.need; });
+  var altMap = {}; pl.alternatives.forEach(function (id) { altMap[id] = 1; });
+  var limit = d.items.length > 20 && !S.showAllPlan ? Math.max(pl.T + 3, 12) : d.items.length;
+  var tbl = h('table', { class: 'tbl' });
+  var hr = h('tr', null, h('th', { class: 'n', text: 'Ранг' }), h('th', { text: 'Публикация' }), h('th', { class: 'n', text: 'Цит.' }), h('th', null, 'До ', V(), ' = ' + pl.T));
+  if (S.simOn) hr.appendChild(h('th', { text: 'Добавить в модели' }));
+  tbl.appendChild(h('thead', null, hr));
+  var tb = h('tbody');
+  d.items.slice(0, limit).forEach(function (it) {
+    var pub = pubById(it.id);
+    var need = needMap[it.id];
+    var inPlan = need !== undefined;
+    var cls = [];
+    if (it.rank <= (d.usePend ? d.hFut : d.hBasis)) cls.push('core');
+    if (need > 0) cls.push('target');
+    var status;
+    if (need > 0) status = h('span', { class: 'pill need', text: '+' + need });
+    else if (inPlan) status = h('span', { class: 'pill ok', text: 'хватает' });
+    else if (altMap[it.id]) status = h('span', { class: 'pill alt', text: 'замена' });
+    else status = h('span', { class: 'muted', text: '—' });
+    var meta = [pub && pub.y ? String(pub.y) : '', pub && pub.v ? pub.v : ''].filter(Boolean).join(' · ');
+    var tr = h('tr', { class: cls.join(' '), 'data-plan-row': it.id },
+      h('td', { class: 'n num', text: String(it.rank) }),
+      h('td', { class: 'ttl' }, h('div', null, pub ? pub.t : '', it.pending ? h('span', null, ' ', h('span', { class: 'pill pend', text: 'в печати' })) : null), meta ? h('div', { class: 'sub', text: meta }) : null),
+      h('td', { class: 'n num', style: 'white-space:nowrap' }, String(it.base),
+        it.pend ? h('span', { class: 'mini pend', title: 'Ожидается после выхода работ в печати', text: '+' + it.pend }) : null,
+        it.add ? h('span', { class: 'mini sim', title: 'Добавлено в моделировании', text: '+' + it.add }) : null),
+      h('td', null, status));
+    if (S.simOn) {
+      tr.appendChild(h('td', null, h('div', { class: 'stepper' },
+        h('button', { type: 'button', 'aria-label': 'Убрать воображаемое цитирование', onclick: function () { S.sim[it.id] = Math.max(0, (S.sim[it.id] || 0) - 1); S.target = null; renderAnalysis(); } }, '−'),
+        h('output', { text: String(S.sim[it.id] || 0) }),
+        h('button', { type: 'button', 'aria-label': 'Добавить воображаемое цитирование', onclick: function () { S.sim[it.id] = (S.sim[it.id] || 0) + 1; S.target = null; renderAnalysis(); } }, '+'))));
+    }
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  sec.appendChild(h('div', { class: 'table-scroll' }, tbl));
+  if (limit < d.items.length) {
+    sec.appendChild(h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn sm', type: 'button', onclick: function () { S.showAllPlan = true; renderAnalysis(); } }, 'Показать все ' + nw(d.items.length, W.pub))));
+  }
+  sec.appendChild(h('p', { class: 'small muted', style: 'margin:12px 0 0' },
+    'Синяя метка слева — статья в ядре Хирша, красная — ей нужны цитирования для цели. Нажмите на столбец диаграммы, чтобы найти статью в таблице.'));
+  return sec;
+}
+/* ===== lists: my publications, citing works; edit dialogs ===== */
+S.pubSort = 'cites';
+
+function renderPubs() {
+  var root = $('view-pubs');
+  root.textContent = '';
+  var p = P(), counts = Core.computeCounts(p);
+  var search = h('input', { type: 'search', id: 'pubSearch', placeholder: 'Поиск по названию, авторам, году', value: S.q.pubs,
+    oninput: function (e) { S.q.pubs = e.target.value; renderPubList(); } });
+  var sort = h('select', { id: 'pubSort', 'aria-label': 'Сортировка', onchange: function (e) { S.pubSort = e.target.value; renderPubList(); } },
+    h('option', { value: 'cites', text: 'По цитированиям' }), h('option', { value: 'year', text: 'По году' }), h('option', { value: 'title', text: 'По названию' }));
+  sort.value = S.pubSort;
+  root.appendChild(h('div', { class: 'toolbar' },
+    h('button', { class: 'btn primary', type: 'button', onclick: function () { openImport('pubs'); } }, 'Загрузить список'),
+    h('button', { class: 'btn', type: 'button', onclick: function () { openPubDialog(null); } }, 'Добавить одну'),
+    h('button', { class: 'btn', type: 'button', onclick: function () { openPubDialog(null, { pending: true }); } }, 'Добавить работу в печати'),
+    search, sort));
+  root.appendChild(h('div', { class: 'items', id: 'pubList' }));
+  renderPubList(counts);
+}
+
+function renderPubList(counts) {
+  var list = $('pubList');
+  if (!list) return;
+  list.textContent = '';
+  var p = P();
+  counts = counts || Core.computeCounts(p);
+  if (!p.pubs.length) {
+    list.appendChild(h('div', { class: 'empty' },
+      h('h3', { text: 'Публикаций пока нет' }),
+      h('p', { text: 'Вставьте список названий (по одному на строку), таблицу из Excel или загрузите экспорт из eLIBRARY, Google Scholar, Scopus, Web of Science.' })));
+    return;
+  }
+  var q = Core.norm(S.q.pubs);
+  var rows = p.pubs.filter(function (x) { return !q || Core.norm([x.t, x.a, x.v, x.y].join(' ')).indexOf(q) !== -1; });
+  rows.sort(function (a, b) {
+    if (S.pubSort === 'year') return (b.y || 0) - (a.y || 0) || a.t.localeCompare(b.t, 'ru');
+    if (S.pubSort === 'title') return a.t.localeCompare(b.t, 'ru');
+    return counts[b.id].all - counts[a.id].all || (b.y || 0) - (a.y || 0);
+  });
+  if (!rows.length) { list.appendChild(h('p', { class: 'muted', text: 'Ничего не найдено.' })); return; }
+  var citesByPub = {};
+  p.cites.forEach(function (c) { (c.to || []).forEach(function (id) { (citesByPub[id] = citesByPub[id] || []).push(c); }); });
+  rows.forEach(function (pub) { list.appendChild(pubItem(pub, counts[pub.id], citesByPub[pub.id] || [])); });
+}
+
+function pubItem(pub, cnt, cites) {
+  var meta = [pub.a, pub.v, pub.y ? String(pub.y) : '', pub.doi].filter(Boolean).join(' · ');
+  var manual = h('input', { type: 'number', min: '0', inputmode: 'numeric', id: 'm_' + pub.id, value: pub.m === null || pub.m === undefined ? '' : String(pub.m), placeholder: '—',
+    'aria-label': 'Цитирований по данным базы',
+    onchange: function (e) {
+      var v = e.target.value.trim();
+      pub.m = v === '' ? null : Math.max(0, Math.floor(+v) || 0);
+      commit();
+    } });
+  var open = !!S.expanded[pub.id];
+  var refsN = (pub.refs || []).length;
+  var countNow = pub.pending ? cnt.futAll : cnt.all;
+  var item = h('article', { class: 'item' + (pub.pending ? ' pending' : '') },
+    h('div', { class: 'item-main' },
+      h('div', { style: 'min-width:0' },
+        h('div', { class: 'item-title' }, pub.t, pub.pending ? h('span', null, ' ', h('span', { class: 'pill pend', text: 'в печати' })) : null),
+        meta ? h('div', { class: 'item-meta', text: meta }) : null,
+        refsN ? h('div', { class: 'item-meta', text: 'Ссылается на ' + nw(refsN, ['вашу публикацию', 'ваши публикации', 'ваших публикаций']) + (pub.pending ? ' — эти самоцитирования добавятся после выхода' : '') }) : null),
+      h('div', { class: 'item-side' },
+        h('div', null, h('span', { class: 'big-count', text: String(countNow) }), ' ',
+          h('span', { class: 'small muted', text: pub.pending ? 'ожидается' : plural(cnt.all, W.cit) })),
+        !pub.pending && cnt.pend ? h('div', { class: 'small', style: 'color:var(--blue-ink)', text: '+' + cnt.pend + ' от работ в печати' }) : null,
+        h('div', { class: 'small muted', text: 'в списке: ' + (cnt.linked + (pub.pending ? cnt.linkedPend : 0)) + (cnt.self ? ', из них самоцит.: ' + cnt.self : '') }),
+        h('label', { class: 'manual' }, pub.pending ? 'ожидаю' : 'по базе', manual))),
+    h('div', { class: 'item-actions' },
+      pub.pending ? h('button', { class: 'btn sm primary', type: 'button', onclick: function () {
+        setPubPending(P(), pub, false); commit();
+        toast('Публикация вышла и теперь учитывается в индексе');
+      } }, 'Отметить как вышедшую') : null,
+      h('button', { class: 'btn sm', type: 'button', 'aria-expanded': String(open), disabled: cites.length ? null : true,
+        onclick: function () { S.expanded[pub.id] = !S.expanded[pub.id]; renderPubList(); } },
+        (open ? 'Скрыть' : 'Показать') + ' цитирующие работы (' + cites.length + ')'),
+      h('button', { class: 'btn sm', type: 'button', onclick: function () { openImport('cites', pub.id); } }, 'Добавить цитирующие работы'),
+      h('button', { class: 'btn sm ghost', type: 'button', onclick: function () { openPubDialog(pub); } }, 'Изменить'),
+      h('button', { class: 'btn sm ghost danger', type: 'button', onclick: function () { deletePub(pub); } }, 'Удалить')));
+  if (open && cites.length) {
+    var nest = h('div', { class: 'nested' });
+    cites.slice().sort(function (a, b) { return (b.y || 0) - (a.y || 0); }).forEach(function (c) {
+      nest.appendChild(h('div', { class: 'row' },
+        h('div', { style: 'min-width:0;overflow-wrap:anywhere' },
+          h('span', { text: c.t }),
+          h('span', { class: 'muted', text: [c.a, c.y].filter(Boolean).length ? ' — ' + [c.a, c.y].filter(Boolean).join(', ') : '' }),
+          c.self ? h('span', null, ' ', h('span', { class: 'pill self', text: 'самоцит.' })) : null,
+          c.pending ? h('span', null, ' ', h('span', { class: 'pill pend', text: 'в печати' })) : null),
+        h('button', { class: 'btn sm ghost', type: 'button', 'aria-label': 'Отвязать от этой публикации',
+          onclick: function () { keepUndo('Связь удалена'); c.to = c.to.filter(function (x) { return x !== pub.id; }); commit(); } }, 'Отвязать')));
+    });
+    item.appendChild(nest);
+  }
+  return item;
+}
+
+function deletePub(pub) {
+  var p = P();
+  keepUndo('Публикация удалена');
+  p.pubs = p.pubs.filter(function (x) { return x.id !== pub.id; });
+  p.cites = p.cites.filter(function (c) { return c.own !== pub.id; });
+  p.cites.forEach(function (c) { c.to = (c.to || []).filter(function (x) { return x !== pub.id; }); });
+  p.pubs.forEach(function (x) { if (x.refs && x.refs.indexOf(pub.id) !== -1) { x.refs = x.refs.filter(function (r) { return r !== pub.id; }); syncOwnCite(p, x); } });
+  delete S.sim[pub.id];
+  commit();
+}
+
+/* ---------- citing works ---------- */
+function renderCites() {
+  var root = $('view-cites');
+  root.textContent = '';
+  var p = P();
+  var search = h('input', { type: 'search', id: 'citeSearch', placeholder: 'Поиск по названию, авторам, году', value: S.q.cites,
+    oninput: function (e) { S.q.cites = e.target.value; renderCiteList(); } });
+  var seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Фильтр' });
+  [['all', 'Все'], ['self', 'Самоцитирования'], ['pend', 'В печати'], ['free', 'Без привязки']].forEach(function (o) {
+    seg.appendChild(h('button', { type: 'button', 'aria-pressed': String(S.citeFilter === o[0]), onclick: function () { S.citeFilter = o[0]; renderCites(); } }, o[1]));
+  });
+  root.appendChild(h('div', { class: 'toolbar' },
+    h('button', { class: 'btn primary', type: 'button', disabled: p.pubs.length ? null : true, onclick: function () { openImport('cites'); } }, 'Загрузить цитирующие работы'),
+    h('button', { class: 'btn', type: 'button', disabled: p.pubs.length ? null : true, onclick: function () { openCiteDialog(null); } }, 'Добавить одну'),
+    search, seg));
+  var names = Core.nameVariants(p.names);
+  root.appendChild(h('p', { class: 'small', style: 'margin:0 0 12px;color:var(--ink-2)' },
+    names.length ? 'Самоцитирования отмечаются, если среди авторов есть: ' + p.names + '. ' : 'Чтобы отмечать самоцитирования автоматически, укажите варианты своей фамилии. ',
+    h('button', { class: 'btn sm ghost', type: 'button', onclick: openProfile }, names.length ? 'Изменить' : 'Указать фамилию')));
+  root.appendChild(h('div', { class: 'items', id: 'citeList' }));
+  renderCiteList();
+}
+
+function renderCiteList() {
+  var list = $('citeList');
+  if (!list) return;
+  list.textContent = '';
+  var p = P();
+  if (!p.pubs.length) {
+    list.appendChild(h('div', { class: 'empty' }, h('h3', { text: 'Сначала добавьте свои публикации' }),
+      h('p', { text: 'Цитирующие работы привязываются к вашим публикациям, поэтому начните со списка своих статей.' })));
+    return;
+  }
+  if (!p.cites.length) {
+    list.appendChild(h('div', { class: 'empty' }, h('h3', { text: 'Цитирующих работ пока нет' }),
+      h('p', { text: 'Скопируйте список работ, которые ссылаются на вашу статью (в eLIBRARY, Google Scholar или Scopus), и вставьте его в окно загрузки — по одной работе на строку.' })));
+    return;
+  }
+  var q = Core.norm(S.q.cites);
+  var rows = p.cites.filter(function (c) {
+    if (S.citeFilter === 'self' && !c.self) return false;
+    if (S.citeFilter === 'pend' && !c.pending) return false;
+    if (S.citeFilter === 'free' && c.to && c.to.length) return false;
+    return !q || Core.norm([c.t, c.a, c.y].join(' ')).indexOf(q) !== -1;
+  });
+  rows.sort(function (a, b) { return (b.y || 0) - (a.y || 0) || a.t.localeCompare(b.t, 'ru'); });
+  if (!rows.length) { list.appendChild(h('p', { class: 'muted', text: 'Ничего не найдено.' })); return; }
+  var LIMIT = 300;
+  rows.slice(0, LIMIT).forEach(function (c) { list.appendChild(citeItem(c, p)); });
+  if (rows.length > LIMIT) list.appendChild(h('p', { class: 'muted', text: 'Показаны первые ' + LIMIT + ' из ' + rows.length + '. Уточните поиск.' }));
+}
+
+function setCiteLinks(c, to) {
+  c.to = to;
+  if (c.own) { var pub = pubById(c.own); if (pub) pub.refs = to.slice(); }
+}
+
+function citeItem(c, p) {
+  var chips = h('div', { class: 'chips' });
+  (c.to || []).forEach(function (id) {
+    var pub = pubById(id);
+    if (!pub) return;
+    chips.appendChild(h('span', { class: 'chip', title: pub.t },
+      h('span', { class: 'ct', text: pub.t }),
+      h('button', { type: 'button', 'aria-label': 'Отвязать', onclick: function () { keepUndo('Связь удалена'); setCiteLinks(c, c.to.filter(function (x) { return x !== id; })); commit(); } }, '✕')));
+  });
+  var free = p.pubs.filter(function (x) { return (c.to || []).indexOf(x.id) === -1 && x.id !== c.own; });
+  if (free.length) {
+    var sel = h('select', { 'aria-label': 'Привязать к публикации', style: 'min-height:28px;padding:2px 8px;font-size:12.5px;max-width:240px',
+      onchange: function (e) { if (!e.target.value) return; setCiteLinks(c, (c.to || []).concat([e.target.value])); commit(); } },
+      h('option', { value: '', text: '+ привязать к публикации' }));
+    free.forEach(function (x) { sel.appendChild(h('option', { value: x.id, text: clip(x.t, 70) })); });
+    chips.appendChild(sel);
+  }
+  var selfBox = h('input', { type: 'checkbox', checked: c.self ? true : null, disabled: c.own ? true : null,
+    onchange: function (e) { c.self = e.target.checked; c.selfManual = true; commit(); } });
+  var ownPub = c.own ? pubById(c.own) : null;
+  return h('article', { class: 'item' + (c.pending ? ' pending' : '') },
+    h('div', { class: 'item-main' },
+      h('div', { style: 'min-width:0' },
+        h('div', { class: 'item-title' }, c.t, c.pending ? h('span', null, ' ', h('span', { class: 'pill pend', text: 'в печати' })) : null),
+        h('div', { class: 'item-meta', text: (ownPub ? 'Ваша публикация · ' : '') + ([c.a, c.y].filter(Boolean).join(' · ') || 'Авторы и год не указаны') })),
+      h('div', { class: 'item-side' }, h('label', { class: 'check' }, selfBox, 'самоцитирование'))),
+    (c.to && c.to.length) ? null : h('p', { class: 'small', style: 'margin:8px 0 0;color:var(--red-ink)', text: 'Не привязана ни к одной публикации и не учитывается.' }),
+    c.pending ? h('p', { class: 'small', style: 'margin:8px 0 0;color:var(--blue-ink)', text: 'Пока в печати: учитывается только в прогнозе.' }) : null,
+    chips,
+    h('div', { class: 'item-actions' },
+      c.pending ? h('button', { class: 'btn sm primary', type: 'button', onclick: function () {
+        if (ownPub) setPubPending(P(), ownPub, false); else publishCite(P(), c);
+        commit(); toast('Работа вышла — цитирования учитываются в индексе');
+      } }, 'Вышла') : null,
+      h('button', { class: 'btn sm ghost', type: 'button', onclick: function () { if (ownPub) openPubDialog(ownPub); else openCiteDialog(c); } }, ownPub ? 'Изменить публикацию' : 'Изменить'),
+      h('button', { class: 'btn sm ghost danger', type: 'button', onclick: function () {
+        keepUndo('Цитирующая работа удалена');
+        if (ownPub) ownPub.refs = [];
+        P().cites = P().cites.filter(function (x) { return x.id !== c.id; }); commit(); } }, 'Удалить')));
+}
+
+/* ---------- dialogs ---------- */
+var editingPub = null;
+function openPubDialog(pub, opts) {
+  opts = opts || {};
+  editingPub = pub;
+  var p = P();
+  var pending = pub ? !!pub.pending : !!opts.pending;
+  $('pubDlgTitle').textContent = pub ? 'Изменить публикацию' : (pending ? 'Новая работа в печати' : 'Новая публикация');
+  $('pubT').value = pub ? pub.t : '';
+  $('pubA').value = pub ? pub.a || '' : '';
+  $('pubV').value = pub ? pub.v || '' : '';
+  $('pubY').value = pub && pub.y ? pub.y : (pending ? new Date().getFullYear() : '');
+  $('pubM').value = pub && pub.m !== null && pub.m !== undefined ? pub.m : '';
+  $('pubDoi').value = pub ? pub.doi || '' : '';
+  $('pubPending').checked = pending;
+  updatePubDialogMode();
+  var box = $('pubRefs');
+  box.textContent = '';
+  var refs = pub && pub.refs ? pub.refs : [];
+  var others = p.pubs.filter(function (x) { return !pub || x.id !== pub.id; });
+  others.slice().sort(function (a, b) { return a.t.localeCompare(b.t, 'ru'); }).forEach(function (x) {
+    box.appendChild(h('label', null,
+      h('input', { type: 'checkbox', value: x.id, checked: refs.indexOf(x.id) !== -1 ? true : null }),
+      h('span', { text: x.t + (x.y ? ' (' + x.y + ')' : '') + (x.pending ? ' — в печати' : '') })));
+  });
+  if (!others.length) box.appendChild(h('span', { class: 'small muted', text: 'Других публикаций пока нет.' }));
+  $('pubErr').hidden = true;
+  $('dlgPub').showModal();
+  $('pubT').focus();
+}
+function updatePubDialogMode() {
+  var pending = $('pubPending').checked;
+  $('pubMLabel').textContent = pending ? 'Ожидаемых цитирований' : 'Цитирований по базе';
+  $('pubM').placeholder = pending ? 'если уже известно' : 'необязательно';
+}
+function savePubDialog() {
+  var t = $('pubT').value.replace(/\s+/g, ' ').trim();
+  if (!t) { $('pubErr').textContent = 'Укажите название публикации.'; $('pubErr').hidden = false; return; }
+  var y = parseInt($('pubY').value, 10);
+  var m = $('pubM').value.trim();
+  var pending = $('pubPending').checked;
+  var refs = Array.prototype.map.call($('pubRefs').querySelectorAll('input:checked'), function (x) { return x.value; });
+  var rec = { t: t, a: $('pubA').value.trim(), v: $('pubV').value.trim(), y: y >= 1900 && y <= 2100 ? y : null,
+    m: m === '' ? null : Math.max(0, Math.floor(+m) || 0), doi: $('pubDoi').value.trim() };
+  var p = P();
+  var target;
+  if (editingPub) {
+    Object.assign(editingPub, rec);
+    target = editingPub;
+    if (!!target.pending !== pending) setPubPending(p, target, pending);
+  } else {
+    target = newPub({ t: rec.t, a: rec.a, v: rec.v, y: rec.y, c: rec.m, doi: rec.doi }, pending);
+    p.pubs.push(target);
+  }
+  target.refs = refs;
+  syncOwnCite(p, target);
+  $('dlgPub').close();
+  commit();
+  toast(editingPub ? 'Публикация обновлена' : (pending ? 'Работа в печати добавлена — смотрите прогноз в «Анализе»' : 'Публикация добавлена'));
+}
+
+var editingCite = null;
+function openCiteDialog(c) {
+  editingCite = c;
+  var p = P();
+  $('citeDlgTitle').textContent = c ? 'Изменить цитирующую работу' : 'Новая цитирующая работа';
+  $('citeT').value = c ? c.t : '';
+  $('citeA').value = c ? c.a || '' : '';
+  $('citeY').value = c && c.y ? c.y : '';
+  $('citeSelf').checked = !!(c && c.self);
+  $('citePending').checked = !!(c && c.pending);
+  var box = $('citeTo');
+  box.textContent = '';
+  p.pubs.slice().sort(function (a, b) { return a.t.localeCompare(b.t, 'ru'); }).forEach(function (pub) {
+    box.appendChild(h('label', null,
+      h('input', { type: 'checkbox', value: pub.id, checked: c && c.to && c.to.indexOf(pub.id) !== -1 ? true : null }),
+      h('span', { text: pub.t + (pub.y ? ' (' + pub.y + ')' : '') })));
+  });
+  $('citeErr').hidden = true;
+  $('dlgCite').showModal();
+  $('citeT').focus();
+}
+function saveCiteDialog() {
+  var t = $('citeT').value.replace(/\s+/g, ' ').trim();
+  if (!t) { $('citeErr').textContent = 'Укажите название работы.'; $('citeErr').hidden = false; return; }
+  var to = Array.prototype.map.call($('citeTo').querySelectorAll('input:checked'), function (x) { return x.value; });
+  if (!to.length) { $('citeErr').textContent = 'Отметьте хотя бы одну свою публикацию, которую цитирует эта работа.'; $('citeErr').hidden = false; return; }
+  var y = parseInt($('citeY').value, 10);
+  var p = P();
+  var a = $('citeA').value.trim();
+  var selfChecked = $('citeSelf').checked;
+  var pendingChecked = $('citePending').checked;
+  if (editingCite) {
+    var autoSelf = Core.isSelf(a, Core.nameVariants(p.names));
+    var wasPending = !!editingCite.pending;
+    Object.assign(editingCite, { t: t, a: a, y: y >= 1900 && y <= 2100 ? y : null, to: to, self: selfChecked });
+    if (wasPending && !pendingChecked) publishCite(p, editingCite);
+    else editingCite.pending = pendingChecked;
+    if (selfChecked !== autoSelf) editingCite.selfManual = true;
+  } else {
+    var res = addCiteRecord(p, { t: t, a: a, y: y >= 1900 && y <= 2100 ? y : null }, to, Core.nameVariants(p.names), pendingChecked);
+    if (selfChecked) { res.cite.self = true; res.cite.selfManual = true; }
+  }
+  $('dlgCite').close();
+  commit();
+  toast(editingCite ? 'Работа обновлена' : 'Работа добавлена');
+}
+/* ===== import dialog ===== */
+var IMP = { mode: 'pubs', pubId: '', parsed: null, recs: [], fileText: null, fileName: '' };
+var ROLE_LABELS = [['title', 'Название'], ['year', 'Год'], ['cites', 'Цитирований'], ['authors', 'Авторы'], ['venue', 'Издание'], ['doi', 'DOI'], ['target', 'Какую мою работу цитирует'], ['', 'Не использовать']];
+var KIND_LABELS = { table: 'таблица', ris: 'RIS', wos: 'Web of Science', bibtex: 'BibTeX', lines: 'список, по строке на работу' };
+
+function openImport(mode, pubId) {
+  var p = P();
+  IMP = { mode: mode, pubId: pubId || '', parsed: null, recs: [], fileText: null, fileName: '' };
+  $('impTitle').textContent = mode === 'pubs' ? 'Загрузить мои публикации' : 'Загрузить цитирующие работы';
+  $('impTarget').hidden = mode !== 'cites';
+  if (mode === 'cites') {
+    var sel = $('impTargetSel');
+    sel.textContent = '';
+    sel.appendChild(h('option', { value: '', text: 'Выберите свою публикацию…' }));
+    p.pubs.slice().sort(function (a, b) { return a.t.localeCompare(b.t, 'ru'); }).forEach(function (x) {
+      sel.appendChild(h('option', { value: x.id, text: clip(x.t, 90) + (x.y ? ' (' + x.y + ')' : '') }));
+    });
+    sel.appendChild(h('option', { value: '__col', text: 'Разные — по столбцу «цитирует» в таблице' }));
+    sel.value = IMP.pubId;
+  }
+  $('impPasteLabel').textContent = mode === 'pubs'
+    ? 'Вставьте список: по одной публикации на строку, или столбцы из Excel (название, год, цитирования)'
+    : 'Вставьте список работ, которые ссылаются на выбранную публикацию: по одной на строку';
+  $('impText').value = '';
+  $('impText').placeholder = mode === 'pubs'
+    ? 'Иванов И. И. Цифровые компетенции педагога // Профессиональное образование. 2023. № 2. С. 10–18.\nМодель наставничества в колледже\t2021\t5'
+    : 'Петрова Е. С. Наставничество в СПО: опыт регионов // Наука и школа. 2024. № 1. С. 5–12.\nSmith J. Teaching with AI. Computers & Education. 2025.';
+  $('impFile').value = '';
+  $('impPending').checked = false;
+  $('impPendingText').textContent = mode === 'pubs'
+    ? 'Это мои работы в печати — учитывать только в прогнозе'
+    : 'Эти работы ещё в печати — учитывать только в прогнозе';
+  $('impStatus').textContent = '';
+  $('impPreview').textContent = '';
+  $('impAdd').disabled = true;
+  $('impAdd').textContent = 'Добавить';
+  $('dlgImport').showModal();
+  $('impText').focus();
+}
+
+function impStatus(msg, isErr) {
+  var s = $('impStatus');
+  s.textContent = msg;
+  s.className = 'small' + (isErr ? ' err' : '');
+}
+
+function readFileText(file) {
+  return new Promise(function (resolve, reject) {
+    var r = new FileReader();
+    r.onload = function () {
+      var txt = String(r.result || '');
+      if (txt.indexOf(String.fromCharCode(0xFFFD)) !== -1) {
+        var r2 = new FileReader();
+        r2.onload = function () { resolve(String(r2.result || '')); };
+        r2.onerror = function () { resolve(txt); };
+        r2.readAsText(file, 'windows-1251');
+      } else resolve(txt);
+    };
+    r.onerror = function () { reject(r.error); };
+    r.readAsText(file, 'utf-8');
+  });
+}
+
+var xlsxLoading = null;
+function loadXLSX() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  if (xlsxLoading) return xlsxLoading;
+  xlsxLoading = new Promise(function (resolve, reject) {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = function () { window.XLSX ? resolve(window.XLSX) : reject(new Error('no XLSX')); };
+    s.onerror = function () { xlsxLoading = null; reject(new Error('load failed')); };
+    document.head.appendChild(s);
+  });
+  return xlsxLoading;
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  IMP.fileName = file.name;
+  var ext = (file.name.split('.').pop() || '').toLowerCase();
+  try {
+    if (ext === 'xlsx' || ext === 'xls') {
+      impStatus('Открываю таблицу Excel…');
+      var X = await loadXLSX();
+      var buf = await file.arrayBuffer();
+      var wb = X.read(buf, { type: 'array' });
+      var sh = wb.Sheets[wb.SheetNames[0]];
+      var rows = X.utils.sheet_to_json(sh, { header: 1, raw: false, defval: '' });
+      setParsed(Core.parseRowsTable(rows));
+    } else {
+      var txt = await readFileText(file);
+      IMP.fileText = txt;
+      setParsed(Core.parseText(txt, ext === 'bib' || ext === 'bibtex' ? 'bib' : (ext === 'ris' || ext === 'ciw' || ext === 'nbib' ? 'ris' : '')));
+    }
+  } catch (e) {
+    impStatus(ext === 'xlsx' || ext === 'xls'
+      ? 'Не удалось открыть файл Excel. Сохраните его как CSV или скопируйте столбцы и вставьте в поле выше.'
+      : 'Не удалось прочитать файл. Проверьте, что это текст, CSV, RIS или BibTeX.', true);
+  }
+}
+
+function parsePasted() {
+  var txt = $('impText').value;
+  if (!txt.trim()) {
+    if (IMP.parsed) { renderPreview(); return; }
+    impStatus('Вставьте список или выберите файл.', true); return;
+  }
+  IMP.fileName = '';
+  setParsed(Core.parseText(txt));
+}
+
+function setParsed(parsed) {
+  IMP.parsed = parsed;
+  buildRecs();
+  renderPreview();
+}
+
+function buildRecs() {
+  var parsed = IMP.parsed;
+  var recs = parsed.table ? Core.recordsFromTable(parsed.table) : parsed.records;
+  var p = P();
+  var byKey = {};
+  if (IMP.mode === 'pubs') p.pubs.forEach(function (x) { byKey[Core.titleKey(x.t)] = x; });
+  else p.cites.forEach(function (x) { byKey[Core.titleKey(x.t)] = x; });
+  var seen = {};
+  IMP.recs = recs.map(function (r) {
+    var k = Core.titleKey(r.t);
+    var ex = byKey[k] || null;
+    var rec = { t: r.t, y: r.y, c: r.c, a: r.a || '', v: r.v || '', doi: r.doi || '', target: r.target || '', ex: ex, dupInFile: !!seen[k], on: true, to: '' };
+    seen[k] = 1;
+    if (IMP.mode === 'pubs') {
+      if (ex) rec.on = r.c !== null && r.c !== undefined && r.c !== ex.m;
+      if (rec.dupInFile) rec.on = false;
+    } else {
+      if (r.target) { var m = Core.matchPub(r.target, p.pubs); rec.to = m ? m.id : ''; }
+      if (rec.dupInFile) rec.on = false;
+    }
+    return rec;
+  });
+}
+
+function renderPreview() {
+  var box = $('impPreview');
+  box.textContent = '';
+  var parsed = IMP.parsed;
+  if (!parsed || !IMP.recs.length) {
+    impStatus(parsed && parsed.kind !== 'empty' ? 'Не нашёл ни одной записи с названием. Проверьте формат или назначьте столбец «Название».' : 'Пусто: вставьте текст или выберите файл.', true);
+    if (parsed && parsed.table) box.appendChild(roleMapper(parsed.table));
+    $('impAdd').disabled = true;
+    return;
+  }
+  impStatus('Распознано записей: ' + IMP.recs.length + ' · формат: ' + (KIND_LABELS[parsed.kind] || parsed.kind) + (IMP.fileName ? ' · файл «' + IMP.fileName + '»' : '') + '. Проверьте и снимите лишние отметки.');
+  if (parsed.table) box.appendChild(roleMapper(parsed.table));
+  var colMode = IMP.mode === 'cites' && $('impTargetSel').value === '__col';
+  var p = P();
+  var tbl = h('table', { class: 'tbl preview' });
+  var head = h('tr', null, h('th', { text: '' }), h('th', { text: 'Название' }), h('th', { text: 'Год' }),
+    IMP.mode === 'pubs' ? h('th', { text: 'Цит.' }) : h('th', { text: 'Авторы' }),
+    colMode ? h('th', { text: 'Цитирует' }) : null, h('th', { text: '' }));
+  tbl.appendChild(h('thead', null, head));
+  var tb = h('tbody');
+  IMP.recs.slice(0, 500).forEach(function (r) {
+    var note = '';
+    if (r.dupInFile) note = 'повтор в списке';
+    else if (r.ex && IMP.mode === 'pubs') note = (r.c !== null && r.c !== undefined && r.c !== r.ex.m) ? 'уже есть, обновит число цитирований' : 'уже есть';
+    else if (r.ex) note = 'уже есть, добавится связь';
+    var row = h('tr', { class: r.ex || r.dupInFile ? 'dup' : '' },
+      h('td', null, h('input', { type: 'checkbox', checked: r.on ? true : null, 'aria-label': 'Добавить', onchange: function (e) { r.on = e.target.checked; updateAddBtn(); } })),
+      h('td', { style: 'min-width:260px' }, h('input', { type: 'text', value: r.t, 'aria-label': 'Название', oninput: function (e) { r.t = e.target.value; } })),
+      h('td', null, h('input', { type: 'number', value: r.y || '', 'aria-label': 'Год', style: 'width:84px', oninput: function (e) { var y = parseInt(e.target.value, 10); r.y = y >= 1900 && y <= 2100 ? y : null; } })),
+      IMP.mode === 'pubs'
+        ? h('td', null, h('input', { type: 'number', min: '0', value: r.c === null || r.c === undefined ? '' : r.c, 'aria-label': 'Цитирований', oninput: function (e) { var v = e.target.value.trim(); r.c = v === '' ? null : Math.max(0, +v || 0); } }))
+        : h('td', { style: 'min-width:160px' }, h('input', { type: 'text', value: r.a, 'aria-label': 'Авторы', oninput: function (e) { r.a = e.target.value; } })),
+      colMode ? h('td', null, targetSelect(r, p)) : null,
+      h('td', { class: 'small muted', text: note }));
+    tb.appendChild(row);
+  });
+  tbl.appendChild(tb);
+  box.appendChild(h('div', { class: 'table-scroll' }, tbl));
+  if (IMP.recs.length > 500) box.appendChild(h('p', { class: 'small muted', text: 'В таблице показаны первые 500 записей; добавятся все отмеченные.' }));
+  updateAddBtn();
+}
+
+function targetSelect(r, p) {
+  var sel = h('select', { 'aria-label': 'Какую мою публикацию цитирует', onchange: function (e) { r.to = e.target.value; updateAddBtn(); } },
+    h('option', { value: '', text: r.target ? 'Не найдено: ' + clip(r.target, 30) : '— выберите —' }));
+  p.pubs.forEach(function (x) { sel.appendChild(h('option', { value: x.id, text: clip(x.t, 50) })); });
+  sel.value = r.to || '';
+  return sel;
+}
+
+function roleMapper(tbl) {
+  var wrap = h('div', { class: 'note' });
+  wrap.appendChild(h('div', { style: 'margin-bottom:8px', text: tbl.hasHeader ? 'Столбцы таблицы. Если что-то определилось неверно, поправьте:' : 'Заголовков нет, назначьте столбцы:' }));
+  var grid = h('div', { class: 'grid2' });
+  tbl.headers.forEach(function (hd, i) {
+    var sample = tbl.rows.length ? (tbl.rows[0][i] || '') : '';
+    var sel = h('select', { onchange: function (e) {
+      var v = e.target.value;
+      if (v) tbl.roles = tbl.roles.map(function (x, j) { return j !== i && x === v ? '' : x; });
+      tbl.roles[i] = v;
+      buildRecs(); renderPreview();
+    } });
+    ROLE_LABELS.forEach(function (o) {
+      if (o[0] === 'target' && IMP.mode !== 'cites') return;
+      if (o[0] === 'cites' && IMP.mode === 'cites') return;
+      sel.appendChild(h('option', { value: o[0], text: o[1] }));
+    });
+    sel.value = tbl.roles[i] || '';
+    grid.appendChild(h('label', { class: 'field' }, h('span', { text: clip(hd, 40) + (sample ? ' — «' + clip(sample, 28) + '»' : '') }), sel));
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function updateAddBtn() {
+  var n = IMP.recs.filter(function (r) { return r.on && String(r.t || '').trim(); }).length;
+  var btn = $('impAdd');
+  btn.disabled = !n;
+  btn.textContent = n ? 'Добавить ' + n : 'Добавить';
+}
+
+function applyImport() {
+  var p = P();
+  var recs = IMP.recs.filter(function (r) { return r.on && String(r.t || '').trim(); });
+  if (!recs.length) return;
+  if (IMP.mode === 'pubs') {
+    var added = 0, updated = 0;
+    recs.forEach(function (r) {
+      var key = Core.titleKey(r.t);
+      var ex = p.pubs.find(function (x) { return Core.titleKey(x.t) === key; });
+      if (ex) {
+        if (r.c !== null && r.c !== undefined) ex.m = r.c;
+        if (!ex.y && r.y) ex.y = r.y;
+        if (!ex.a && r.a) ex.a = r.a;
+        if (!ex.v && r.v) ex.v = r.v;
+        updated++;
+      } else { p.pubs.push(newPub(r, $('impPending').checked)); added++; }
+    });
+    $('dlgImport').close();
+    commit();
+    toast('Добавлено ' + nw(added, W.pub) + (updated ? ', обновлено ' + updated : ''));
+    return;
+  }
+  var target = $('impTargetSel').value;
+  if (!target) { impStatus('Выберите, какую вашу публикацию цитируют эти работы.', true); $('impTargetSel').focus(); return; }
+  var colMode = target === '__col';
+  var variants = Core.nameVariants(p.names);
+  var nNew = 0, nMerged = 0, nSkipped = 0;
+  recs.forEach(function (r) {
+    var to = colMode ? r.to : target;
+    if (!to) { nSkipped++; return; }
+    var res = addCiteRecord(p, r, [to], variants, $('impPending').checked);
+    if (res.merged) nMerged++; else nNew++;
+  });
+  if (!nNew && !nMerged) { impStatus('Ни одна строка не привязана к публикации. Выберите публикацию в столбце «Цитирует».', true); return; }
+  $('dlgImport').close();
+  commit();
+  toast('Новых работ: ' + nNew + (nMerged ? ', связей с уже известными: ' + nMerged : '') + (nSkipped ? ', без привязки пропущено: ' + nSkipped : ''));
+}
+
+function initImport() {
+  $('impParse').addEventListener('click', parsePasted);
+  $('impAdd').addEventListener('click', applyImport);
+  $('impFile').addEventListener('change', function (e) { handleFile(e.target.files && e.target.files[0]); });
+  $('impTargetSel').addEventListener('change', function () { if (IMP.parsed) renderPreview(); });
+  $('impText').addEventListener('paste', function () { setTimeout(parsePasted, 0); });
+  var drop = $('impDrop');
+  ['dragenter', 'dragover'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; handleFile(f); });
+}
+/* ===== history view ===== */
+function renderHistory() {
+  var root = $('view-history');
+  root.textContent = '';
+  var p = P();
+  if (!p.pubs.length && !(p.hist && p.hist.length)) {
+    root.appendChild(h('div', { class: 'empty' }, h('h3', { text: 'История начнётся после первой загрузки' }),
+      h('p', { text: 'Трекер записывает индекс за каждый день, когда меняются данные. По годам цитирующих работ он также восстановит, как индекс рос раньше.' })));
+    return;
+  }
+  var two = h('div', { class: 'two' });
+  two.appendChild(snapshotsPanel(p));
+  two.appendChild(yearsPanel(p));
+  root.appendChild(two);
+}
+
+function snapshotsPanel(p) {
+  var hist = (p.hist || []).slice().sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; });
+  var panel = h('div', { class: 'panel' });
+  panel.appendChild(h('h2', { text: 'Записи по датам' }));
+  panel.appendChild(h('p', { class: 'small', style: 'margin:4px 0 10px;color:var(--ink-2)', text: 'Запись появляется сама в день, когда меняются данные. Прошлые значения можно внести вручную.' }));
+  if (hist.length >= 2) {
+    var box = h('div', { class: 'chart-scroll' });
+    panel.appendChild(box);
+    var xs = hist.map(function (e) { return Date.parse(e.d + 'T12:00:00'); });
+    requestAnimationFrame(function () {
+      stepChart(box, {
+        xs: xs, labels: hist.map(function (e) { return fmtDate(e.d); }),
+        tickFmt: function (x) { var d = new Date(x); return MONTHS[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2); },
+        series: [
+          { name: 'h', values: hist.map(function (e) { return e.h; }), stroke: 'var(--blue)', dash: null },
+          { name: 'без самоцит.', values: hist.map(function (e) { return e.hn === undefined || e.hn === null ? null : e.hn; }), stroke: 'var(--ink-3)', dash: '5 4' }
+        ],
+        extra: hist.map(function (e) { return e.c !== undefined && e.c !== null ? nw(e.c, W.cit) + (e.p ? ', ' + nw(e.p, W.pub) : '') : ''; })
+      });
+    });
+    panel.appendChild(seriesLegend());
+  } else {
+    panel.appendChild(h('p', { class: 'note', text: 'Пока одна запись. График появится, когда значения изменятся в другой день, или добавьте прошлые значения вручную.' }));
+  }
+  var tbl = h('table', { class: 'tbl', style: 'margin-top:12px' });
+  tbl.appendChild(h('thead', null, h('tr', null, h('th', { text: 'Дата' }), h('th', { class: 'n' }, V()), h('th', { class: 'n', text: 'Без самоцит.' }), h('th', { class: 'n', text: 'Публ.' }), h('th', { class: 'n', text: 'Цит.' }), h('th', { text: '' }))));
+  var tb = h('tbody');
+  hist.slice().reverse().forEach(function (e) {
+    tb.appendChild(h('tr', null,
+      h('td', null, fmtDate(e.d), e.auto ? null : h('span', { class: 'small muted', text: ' · вручную' })),
+      h('td', { class: 'n num', text: String(e.h) }),
+      h('td', { class: 'n num', text: e.hn === undefined || e.hn === null ? '—' : String(e.hn) }),
+      h('td', { class: 'n num', text: e.p === undefined || e.p === null ? '—' : String(e.p) }),
+      h('td', { class: 'n num', text: e.c === undefined || e.c === null ? '—' : String(e.c) }),
+      h('td', { class: 'n' }, h('button', { class: 'btn sm ghost', type: 'button', 'aria-label': 'Удалить запись от ' + fmtDate(e.d),
+        onclick: function () { keepUndo('Запись удалена'); p.hist = p.hist.filter(function (x) { return x !== e; }); S.ws.fresh = false; Store.save(S.ws); renderAll(); } }, '✕'))));
+  });
+  tbl.appendChild(tb);
+  panel.appendChild(h('div', { class: 'table-scroll' }, tbl));
+
+  var fd = h('input', { type: 'date', id: 'hDate', value: isoDate(new Date()), max: isoDate(new Date()) });
+  var fh = h('input', { type: 'number', id: 'hH', min: '0', placeholder: 'h', style: 'width:72px' });
+  var fhn = h('input', { type: 'number', id: 'hHn', min: '0', placeholder: 'без сам.', style: 'width:96px' });
+  var fc = h('input', { type: 'number', id: 'hC', min: '0', placeholder: 'цит.', style: 'width:84px' });
+  var err = h('span', { class: 'err' });
+  panel.appendChild(h('div', { class: 'toolbar', style: 'margin-top:14px' },
+    h('label', { class: 'sr', for: 'hDate', text: 'Дата' }), fd,
+    h('label', { class: 'sr', for: 'hH', text: 'Индекс Хирша' }), fh,
+    h('label', { class: 'sr', for: 'hHn', text: 'Без самоцитирований' }), fhn,
+    h('label', { class: 'sr', for: 'hC', text: 'Цитирований' }), fc,
+    h('button', { class: 'btn sm', type: 'button', onclick: function () {
+      var d = fd.value, hv = parseInt(fh.value, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || isNaN(hv) || hv < 0) { err.textContent = 'Укажите дату и значение h.'; return; }
+      var e = { d: d, h: hv, hn: fhn.value === '' ? null : Math.max(0, +fhn.value), c: fc.value === '' ? null : Math.max(0, +fc.value), p: null };
+      p.hist = (p.hist || []).filter(function (x) { return x.d !== d; });
+      p.hist.push(e);
+      p.hist.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+      S.ws.fresh = false; Store.save(S.ws); renderAll();
+      toast('Запись добавлена');
+    } }, 'Добавить запись'), err));
+  return panel;
+}
+
+function yearsPanel(p) {
+  var r = Core.byYear(p);
+  var panel = h('div', { class: 'panel' });
+  panel.appendChild(h('h2', { text: 'Рост по годам' }));
+  panel.appendChild(h('p', { class: 'small', style: 'margin:4px 0 10px;color:var(--ink-2)' },
+    'Восстановлено по годам цитирующих работ: каким был ', V(), ' на конец каждого года.'));
+  if (!r.rows.length || !r.dated) {
+    panel.appendChild(h('p', { class: 'note', text: 'Нужны цитирующие работы с указанным годом. Пока число цитирований задано только вручную, восстановить прошлое нельзя.' }));
+    return panel;
+  }
+  var cov = Math.round(r.coverage * 100);
+  panel.appendChild(h('p', { class: cov < 70 ? 'note' : 'small muted', style: 'margin:0 0 8px',
+    text: 'Учтено ' + r.dated + ' из ' + nw(r.total, W.cit) + ' (' + cov + '%). ' + (cov < 70 ? 'Остальные заданы числом без списка работ или без года, поэтому прошлые значения занижены.' : 'Цитирования без года и заданные только числом не учитываются.') }));
+  var rows = r.rows.filter(function (x, i) { return x.c > 0 || i === r.rows.length - 1 || (r.rows[i + 1] && r.rows[i + 1].c > 0); });
+  var box = h('div', { class: 'chart-scroll' });
+  panel.appendChild(box);
+  requestAnimationFrame(function () {
+    stepChart(box, {
+      xs: rows.map(function (x) { return x.y; }), labels: rows.map(function (x) { return 'конец ' + x.y + ' года'; }),
+      tickFmt: function (x) { return String(x); }, integerX: true,
+      series: [
+        { name: 'h', values: rows.map(function (x) { return x.h; }), stroke: 'var(--blue)', dash: null },
+        { name: 'без самоцит.', values: rows.map(function (x) { return x.hn; }), stroke: 'var(--ink-3)', dash: '5 4' }
+      ],
+      extra: rows.map(function (x) { return nw(x.c, W.cit) + ' в списках'; })
+    });
+  });
+  panel.appendChild(seriesLegend());
+  var tbl = h('table', { class: 'tbl', style: 'margin-top:12px' });
+  tbl.appendChild(h('thead', null, h('tr', null, h('th', { text: 'Год' }), h('th', { class: 'n' }, V()), h('th', { class: 'n', text: 'Без самоцит.' }), h('th', { class: 'n', text: 'Цитирований' }))));
+  var tb = h('tbody');
+  rows.slice().reverse().forEach(function (x) {
+    tb.appendChild(h('tr', null, h('td', { class: 'num', text: String(x.y) }), h('td', { class: 'n num', text: String(x.h) }), h('td', { class: 'n num', text: String(x.hn) }), h('td', { class: 'n num', text: String(x.c) })));
+  });
+  tbl.appendChild(tb);
+  panel.appendChild(h('div', { class: 'table-scroll' }, tbl));
+  return panel;
+}
+
+function seriesLegend() {
+  return h('div', { class: 'legend' },
+    h('span', null, lineKey('var(--blue)', null, 22), h('span', null, 'Индекс ', V())),
+    h('span', null, lineKey('var(--ink-3)', '5 4', 22), 'Без самоцитирований'));
+}
+
+/* step line chart with crosshair; one shared y axis (integers) */
+function stepChart(box, cfg) {
+  box.textContent = '';
+  var W0 = Math.max(280, box.clientWidth || 480), H0 = 220;
+  var ml = 30, mr = 14, mt = 14, mb = 30;
+  var xs = cfg.xs, n = xs.length;
+  var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+  if (x0 === x1) { x0 -= 1; x1 += 1; }
+  var yMax = 1;
+  cfg.series.forEach(function (s) { s.values.forEach(function (v) { if (v !== null && v > yMax) yMax = v; }); });
+  yMax = yMax + 1;
+  function X(x) { return ml + (x - x0) / (x1 - x0) * (W0 - ml - mr); }
+  function Y(v) { return mt + (1 - v / yMax) * (H0 - mt - mb); }
+  var svg = sv('svg', { width: W0, height: H0, viewBox: '0 0 ' + W0 + ' ' + H0, role: 'img', 'aria-label': 'Динамика индекса Хирша, ' + n + ' точек' });
+  var grid = sv('g', { 'shape-rendering': 'crispEdges' });
+  var stepY = yMax > 12 ? 5 : (yMax > 6 ? 2 : 1);
+  for (var v = 0; v <= yMax; v += stepY) {
+    grid.appendChild(sv('line', { x1: ml, x2: W0 - mr, y1: Y(v), y2: Y(v), stroke: v === 0 ? 'var(--ink-3)' : 'var(--grid)', 'stroke-width': 1 }));
+    grid.appendChild(sv('text', { x: ml - 7, y: Y(v) + 4, 'text-anchor': 'end', 'font-size': 11, 'font-family': 'var(--font-data)', fill: 'var(--ink-3)' }, String(v)));
+  }
+  svg.appendChild(grid);
+  /* x ticks */
+  var ticks = [];
+  if (cfg.integerX) {
+    var span = x1 - x0, st = span > 16 ? 5 : (span > 8 ? 2 : 1);
+    for (var t = Math.ceil(x0 / st) * st; t <= x1; t += st) ticks.push(t);
+  } else {
+    var count = Math.min(5, n);
+    for (var k = 0; k < count; k++) ticks.push(x0 + (x1 - x0) * k / Math.max(1, count - 1));
+  }
+  ticks.forEach(function (t, i) {
+    var anchor = i === 0 && !cfg.integerX ? 'start' : (i === ticks.length - 1 && !cfg.integerX ? 'end' : 'middle');
+    svg.appendChild(sv('text', { x: X(t), y: H0 - 9, 'text-anchor': anchor, 'font-size': 11, 'font-family': 'var(--font-data)', fill: 'var(--ink-3)' }, cfg.tickFmt(t)));
+  });
+  cfg.series.forEach(function (s) {
+    var d = '', started = false, prevY = null;
+    s.values.forEach(function (val, i) {
+      if (val === null || val === undefined) return;
+      var px = X(xs[i]), py = Y(val);
+      if (!started) { d += 'M' + px + ',' + py; started = true; }
+      else d += 'H' + px + 'V' + py;
+      prevY = py;
+    });
+    if (d) svg.appendChild(sv('path', { d: d, fill: 'none', stroke: s.stroke, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'stroke-dasharray': s.dash || null }));
+    var lastI = -1;
+    s.values.forEach(function (val, i) { if (val !== null && val !== undefined) lastI = i; });
+    if (lastI >= 0) svg.appendChild(sv('circle', { cx: X(xs[lastI]), cy: Y(s.values[lastI]), r: 4, fill: s.stroke, stroke: 'var(--sheet)', 'stroke-width': 2 }));
+  });
+  /* crosshair */
+  var hair = sv('line', { y1: mt, y2: H0 - mb, stroke: 'var(--ink-3)', 'stroke-width': 1, visibility: 'hidden' });
+  svg.appendChild(hair);
+  var dots = cfg.series.map(function (s) { var c = sv('circle', { r: 4.5, fill: s.stroke, stroke: 'var(--sheet)', 'stroke-width': 2, visibility: 'hidden' }); svg.appendChild(c); return c; });
+  var overlay = sv('rect', { x: ml, y: mt, width: W0 - ml - mr, height: H0 - mt - mb, fill: 'transparent', tabindex: 0, 'aria-label': 'График: стрелками влево и вправо выбирайте точку' });
+  svg.appendChild(overlay);
+  var cur = n - 1;
+  function show(i, cx, cy) {
+    cur = i;
+    var px = X(xs[i]);
+    hair.setAttribute('x1', px); hair.setAttribute('x2', px); hair.setAttribute('visibility', 'visible');
+    cfg.series.forEach(function (s, j) {
+      var val = s.values[i];
+      if (val === null || val === undefined) { dots[j].setAttribute('visibility', 'hidden'); return; }
+      dots[j].setAttribute('cx', px); dots[j].setAttribute('cy', Y(val)); dots[j].setAttribute('visibility', 'visible');
+    });
+    var tip = $('tip');
+    tip.textContent = '';
+    tip.appendChild(h('div', { class: 't', style: 'margin:0 0 4px', text: cfg.labels[i] }));
+    cfg.series.forEach(function (s) {
+      var val = s.values[i];
+      tip.appendChild(h('div', { style: 'display:flex;align-items:center;gap:8px' },
+        lineKey(s.stroke, s.dash ? '4 3' : null, 16),
+        h('b', { text: val === null || val === undefined ? '—' : String(val) }),
+        h('span', { class: 'muted', text: s.name })));
+    });
+    if (cfg.extra && cfg.extra[i]) tip.appendChild(h('div', { class: 't', style: 'margin-top:4px', text: cfg.extra[i] }));
+    tip.hidden = false;
+    var r = tip.getBoundingClientRect();
+    var left = cx + 14, top = cy + 14;
+    if (left + r.width > window.innerWidth - 8) left = cx - r.width - 14;
+    if (top + r.height > window.innerHeight - 8) top = cy - r.height - 14;
+    tip.style.left = Math.max(8, left) + 'px'; tip.style.top = Math.max(8, top) + 'px';
+  }
+  function hide() { hair.setAttribute('visibility', 'hidden'); dots.forEach(function (d) { d.setAttribute('visibility', 'hidden'); }); hideTip(); }
+  function nearest(clientX) {
+    var b = svg.getBoundingClientRect();
+    var x = (clientX - b.left) * (W0 / b.width);
+    var best = 0, bd = Infinity;
+    xs.forEach(function (v, i) { var dd = Math.abs(X(v) - x); if (dd < bd) { bd = dd; best = i; } });
+    return best;
+  }
+  overlay.addEventListener('pointermove', function (e) { show(nearest(e.clientX), e.clientX, e.clientY); });
+  overlay.addEventListener('pointerdown', function (e) { show(nearest(e.clientX), e.clientX, e.clientY); });
+  overlay.addEventListener('pointerleave', hide);
+  function focusShow() { var b = svg.getBoundingClientRect(); show(cur, b.left + X(xs[cur]) * (b.width / W0), b.top + 30); }
+  overlay.addEventListener('focus', focusShow);
+  overlay.addEventListener('blur', hide);
+  overlay.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') { cur = Math.max(0, cur - 1); focusShow(); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { cur = Math.min(n - 1, cur + 1); focusShow(); e.preventDefault(); }
+  });
+  box.appendChild(svg);
+}
+/* ===== profile dialog, export, banner, tabs, boot ===== */
+S.dl = null; S.remoteChanged = false; S.loading = true;
+
+function openProfile() { renderProfileBody(); $('dlgProfile').showModal(); }
+
+function renderProfileBody() {
+  var body = $('profBody');
+  body.textContent = '';
+  var p = P();
+  var nameIn = h('input', { type: 'text', id: 'profName', value: p.name, onchange: function (e) { var v = e.target.value.trim(); if (v) { p.name = v; commit(); renderProfileBody(); } } });
+  var namesIn = h('input', { type: 'text', id: 'profNames', value: p.names || '', placeholder: 'Например: Иванов, Ivanov',
+    onchange: function (e) { p.names = e.target.value; var n = recheckSelf(p); commit(); toast('Фамилии сохранены' + (n ? ', изменено отметок самоцитирования: ' + n : '')); } });
+  body.appendChild(h('div', { class: 'grid2' },
+    h('label', { class: 'field' }, h('span', { text: 'Название профиля' }), nameIn,
+      h('span', { class: 'small muted', text: 'Например: «РИНЦ», «Scopus», «Google Scholar» — индексы в базах различаются.' })),
+    h('label', { class: 'field' }, h('span', { text: 'Ваша фамилия в списках литературы' }), namesIn,
+      h('span', { class: 'small muted', text: 'Через запятую, во всех написаниях. По ним отмечаются самоцитирования.' }))));
+
+  var plist = h('div', { class: 'items' });
+  S.ws.profiles.forEach(function (pr) {
+    var cnt = Core.computeCounts(pr), vals = pr.pubs.map(function (x) { return cnt[x.id].all; });
+    plist.appendChild(h('div', { class: 'item', style: 'padding:10px 12px' },
+      h('div', { class: 'item-main' },
+        h('div', null, h('div', { class: 'item-title', text: pr.name + (pr.id === S.ws.activeId ? ' · открыт' : '') }),
+          h('div', { class: 'item-meta' }, nw(pr.pubs.length, W.pub) + ', ', V(), ' = ' + Core.hIndex(vals))),
+        h('div', { class: 'item-side', style: 'grid-auto-flow:column' },
+          pr.id !== S.ws.activeId ? h('button', { class: 'btn sm', type: 'button', onclick: function () { switchProfile(pr.id); renderProfileBody(); } }, 'Открыть') : null,
+          h('button', { class: 'btn sm ghost danger', type: 'button', onclick: function () { deleteProfile(pr); } }, 'Удалить')))));
+  });
+  var newName = h('input', { type: 'text', id: 'newProfName', placeholder: 'Название нового профиля' });
+  body.appendChild(h('div', null,
+    h('h3', { style: 'margin-bottom:8px', text: 'Профили' }), plist,
+    h('div', { class: 'toolbar', style: 'margin:10px 0 0' }, newName,
+      h('button', { class: 'btn sm', type: 'button', onclick: function () { createProfile(newName.value.trim() || 'Новый профиль'); renderProfileBody(); } }, 'Создать профиль'))));
+
+  var restoreFile = h('input', { type: 'file', accept: '.json,application/json', id: 'restoreFile', class: 'sr',
+    onchange: function (e) { var f = e.target.files && e.target.files[0]; if (f) f.text().then(restoreFrom).catch(function () { toast('Не удалось прочитать файл'); }); } });
+  body.appendChild(h('div', null,
+    h('h3', { style: 'margin-bottom:8px', text: 'Экспорт и резервная копия' }),
+    h('div', { class: 'toolbar' },
+      h('button', { class: 'btn sm', type: 'button', onclick: exportPubsCSV }, 'Публикации и план (CSV для Excel)'),
+      h('button', { class: 'btn sm', type: 'button', onclick: exportCitesCSV }, 'Цитирующие работы (CSV)'),
+      h('button', { class: 'btn sm', type: 'button', onclick: exportBackup }, 'Резервная копия всех профилей'),
+      h('label', { class: 'btn sm', for: 'restoreFile' }, 'Восстановить из копии…'), restoreFile),
+    h('p', { class: 'small muted', style: 'margin:0', text: 'CSV разделён точкой с запятой и открывается в русском Excel без настройки.' })));
+}
+
+function switchProfile(id) {
+  S.ws.activeId = id; S.sim = {}; S.target = null; S.simOn = false; S.expanded = {};
+  if (!S.ws.fresh) Store.save(S.ws);
+  renderAll();
+}
+function createProfile(name, openImportAfter) {
+  var np = emptyProfile(name);
+  var demo = P();
+  if (!demo.demo && demo.names) np.names = demo.names;
+  S.ws.profiles.push(np);
+  S.ws.activeId = np.id;
+  S.sim = {}; S.target = null; S.simOn = false;
+  commit();
+  if (openImportAfter) { setTab('pubs'); openImport('pubs'); }
+}
+async function deleteProfile(pr) {
+  var ok = await confirmBox('Удалить профиль?', '«' + pr.name + '»: ' + nw(pr.pubs.length, W.pub) + ' и ' + nw(pr.cites.length, ['цитирующая работа', 'цитирующие работы', 'цитирующих работ']) + ' будут удалены. Это можно отменить сразу после удаления.', 'Удалить');
+  if (!ok) { if ($('dlgProfile').open) renderProfileBody(); return; }
+  S.undo = { profileId: pr.id, data: JSON.stringify(pr) };
+  S.ws.profiles = S.ws.profiles.filter(function (x) { return x.id !== pr.id; });
+  if (!S.ws.profiles.length) S.ws.profiles.push(emptyProfile('Мой профиль'));
+  if (S.ws.activeId === pr.id) S.ws.activeId = S.ws.profiles[0].id;
+  commit();
+  toast('Профиль удалён', true);
+  if ($('dlgProfile').open) renderProfileBody();
+}
+
+/* ---------- export ---------- */
+var STANDALONE = !(window.claude && typeof window.claude.use === 'function');
+
+async function offerFile(filename, data, title) {
+  if (S.dl) {
+    try { await S.dl.save({ filename: filename, data: data }); return; }
+    catch (e) { if (e && e.code === 'declined') return; }
+  }
+  if (STANDALONE) {
+    /* outside Claude a plain blob download works */
+    try {
+      var type = /\.json$/.test(filename) ? 'application/json' : 'text/csv';
+      var url = URL.createObjectURL(new Blob([data], { type: type + ';charset=utf-8' }));
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      toast('Файл «' + filename + '» сохранён в загрузки');
+      return;
+    } catch (e) { /* fall through to the text dialog */ }
+  }
+  $('txtTitle').textContent = title;
+  $('txtHint').textContent = 'Скачать файл здесь нельзя. Скопируйте текст и сохраните его как «' + filename + '».';
+  $('txtArea').value = data.replace(/^﻿/, '');
+  $('dlgText').showModal();
+}
+function exportPubsCSV() {
+  var d = derive();
+  var p = d.p;
+  var items = Core.ranked(p, d.counts, S.basis, null, d.usePend);
+  var next = Core.plan(items, (d.usePend ? d.hFut : d.hBasis) + 1);
+  var needMap = {}; next.rows.forEach(function (r) { needMap[r.id] = r.need; });
+  var rows = [['Ранг', 'Название', 'Статус', 'Авторы', 'Издание', 'Год', 'Цитирований', 'Без самоцитирований', 'Ожидается от работ в печати', 'Цитирующих работ в списке', 'Цитирований по базе', 'Не хватает до h=' + next.T, 'DOI']];
+  items.forEach(function (it) {
+    var pub = pubById(it.id), c = d.counts[it.id];
+    rows.push([it.rank, pub.t, pub.pending ? 'в печати' : 'опубликована', pub.a, pub.v, pub.y || '', c.all, c.nonself, c.pend || '', c.linked, pub.m === null || pub.m === undefined ? '' : pub.m, needMap[it.id] ? needMap[it.id] : '', pub.doi]);
+  });
+  offerFile('публикации-' + isoDate(new Date()) + '.csv', Core.toCSV(rows), 'Публикации (CSV)');
+}
+function exportCitesCSV() {
+  var p = P();
+  var rows = [['Цитирующая работа', 'Авторы', 'Год', 'Самоцитирование', 'Статус', 'Цитирует']];
+  p.cites.forEach(function (c) {
+    rows.push([c.t, c.a, c.y || '', c.self ? 'да' : '', c.pending ? 'в печати' : 'опубликована', (c.to || []).map(function (id) { var x = pubById(id); return x ? x.t : ''; }).join(' | ')]);
+  });
+  offerFile('цитирующие-работы-' + isoDate(new Date()) + '.csv', Core.toCSV(rows), 'Цитирующие работы (CSV)');
+}
+function exportBackup() {
+  var data = JSON.stringify({ app: 'hirsch-tracker', v: 1, savedAt: new Date().toISOString(), profiles: S.ws.profiles.filter(function (x) { return !x.demo; }) }, null, 1);
+  offerFile('индекс-хирша-копия-' + isoDate(new Date()) + '.json', data, 'Резервная копия');
+}
+async function restoreFrom(text) {
+  var obj;
+  try { obj = JSON.parse(text); } catch (e) { toast('Это не файл резервной копии'); return; }
+  var profiles = obj && Array.isArray(obj.profiles) ? obj.profiles : null;
+  if (!profiles || !profiles.length) { toast('В файле нет профилей'); return; }
+  var ok = await confirmBox('Добавить профили из копии?', 'Будет добавлено профилей: ' + profiles.length + '. Профили с тем же названием заменятся.', 'Добавить');
+  if (!ok) return;
+  profiles.forEach(function (pr) {
+    normalizeProfile(pr);
+    var i = S.ws.profiles.findIndex(function (x) { return x.name === pr.name || x.id === pr.id; });
+    if (i !== -1) S.ws.profiles[i] = pr; else S.ws.profiles.push(pr);
+  });
+  S.ws.activeId = profiles[0].id;
+  commit();
+  toast('Копия восстановлена');
+  if ($('dlgProfile').open) renderProfileBody();
+}
+
+/* ---------- normalization ---------- */
+function normalizeProfile(pr) {
+  pr.id = pr.id || Core.uid('p');
+  pr.name = pr.name || 'Профиль';
+  pr.names = pr.names || '';
+  pr.pubs = Array.isArray(pr.pubs) ? pr.pubs.filter(function (x) { return x && x.t; }) : [];
+  pr.pubs.forEach(function (x) { x.id = x.id || Core.uid('b'); if (x.refs && !Array.isArray(x.refs)) delete x.refs; });
+  pr.cites = Array.isArray(pr.cites) ? pr.cites.filter(function (x) { return x && x.t; }) : [];
+  pr.cites.forEach(function (x) { x.id = x.id || Core.uid('c'); x.to = Array.isArray(x.to) ? x.to : []; });
+  pr.hist = Array.isArray(pr.hist) ? pr.hist : [];
+  return pr;
+}
+function normalizeWs(ws) {
+  if (!ws || !Array.isArray(ws.profiles) || !ws.profiles.length) return null;
+  ws.profiles.forEach(normalizeProfile);
+  if (!ws.profiles.some(function (x) { return x.id === ws.activeId; })) ws.activeId = ws.profiles[0].id;
+  return ws;
+}
+
+/* ---------- chrome ---------- */
+function setSaveState(s, msg) {
+  var el = $('saveState'), tx = $('saveText');
+  var text;
+  if (S.ws && S.ws.fresh && (s === 'account' || s === 'local')) text = 'Пример не сохраняется';
+  else if (s === 'account') text = 'Сохранено в вашем аккаунте';
+  else if (s === 'saving' || s === 'pending') text = S.loading ? 'Загружаю сохранённые данные…' : 'Сохраняю…';
+  else if (s === 'local') text = 'Сохраняется только в этом браузере';
+  else text = msg || 'Ошибка сохранения';
+  if (msg && s !== 'error') text = msg;
+  el.dataset.s = s;
+  tx.textContent = text;
+  el.title = s !== 'local' ? '' : (STANDALONE
+    ? 'Данные хранятся в этом браузере. Делайте резервные копии в окне «Профиль и данные».'
+    : 'Войдите в Claude, чтобы данные хранились в аккаунте и были доступны на других устройствах.');
+}
+
+function renderBanner() {
+  var slot = $('bannerSlot');
+  slot.textContent = '';
+  if (S.remoteChanged) {
+    slot.appendChild(h('div', { class: 'banner warn', role: 'status' },
+      h('p', { text: 'Данные изменились в другой вкладке или на другом устройстве.' }),
+      h('button', { class: 'btn sm primary', type: 'button', onclick: loadRemoteNow }, 'Загрузить их'),
+      h('button', { class: 'btn sm', type: 'button', onclick: function () { S.remoteChanged = false; Store.save(S.ws, true); renderBanner(); } }, 'Оставить эти')));
+  }
+  if (P().demo) {
+    var others = S.ws.profiles.length > 1;
+    slot.appendChild(h('div', { class: 'banner' },
+      h('p', null, h('b', { text: 'Это пример с вымышленным автором' }), ' — так трекер выглядит с данными. Ваши публикации будут в отдельном профиле, пример можно потом удалить.'),
+      h('button', { class: 'btn sm primary', type: 'button', onclick: function () { createProfile('Мой профиль (РИНЦ)', true); } }, 'Начать со своими данными'),
+      others ? h('button', { class: 'btn sm', type: 'button', onclick: function () { deleteProfile(P()); } }, 'Удалить пример') : null));
+  }
+}
+
+async function loadRemoteNow() {
+  try {
+    var ws = normalizeWs(await Store.reloadRemote());
+    if (ws) { S.ws = ws; Store.writeLocal(ws); }
+    S.remoteChanged = false;
+    renderAll();
+    toast('Загружены последние данные');
+  } catch (e) { toast('Не удалось загрузить данные'); }
+}
+
+function renderProfileSelect() {
+  var sel = $('profileSel');
+  sel.textContent = '';
+  S.ws.profiles.forEach(function (pr) { sel.appendChild(h('option', { value: pr.id, text: pr.name })); });
+  sel.value = S.ws.activeId;
+}
+
+var TABS = ['analysis', 'pubs', 'cites', 'history', 'help'];
+function setTab(t) {
+  if (TABS.indexOf(t) === -1) t = 'analysis';
+  S.tab = t;
+  TABS.forEach(function (x) {
+    $('tab-' + x).setAttribute('aria-selected', String(x === t));
+    $('tab-' + x).tabIndex = x === t ? 0 : -1;
+    $('view-' + x).hidden = x !== t;
+  });
+  try { history.replaceState(null, '', '#' + t); } catch (e) { /* ignore */ }
+  hideTip();
+  renderView();
+}
+function renderView() {
+  if (S.tab === 'analysis') renderAnalysis();
+  else if (S.tab === 'pubs') renderPubs();
+  else if (S.tab === 'cites') renderCites();
+  else if (S.tab === 'history') renderHistory();
+}
+function renderAll() {
+  var p = P();
+  $('cntPubs').textContent = p.pubs.length ? String(p.pubs.length) : '';
+  $('cntCites').textContent = p.cites.length ? String(p.cites.length) : '';
+  renderProfileSelect();
+  renderBanner();
+  renderView();
+}
+
+/* ---------- boot ---------- */
+(function boot() {
+  var local = normalizeWs(Store.readLocal());
+  S.ws = local || freshWorkspace();
+  if (S.ws.fresh) recordHistory(P());
+  Store.onStatus = setSaveState;
+  Store.onRemote = function () { S.remoteChanged = true; renderBanner(); };
+
+  document.querySelectorAll('.tab').forEach(function (b) {
+    b.addEventListener('click', function () { setTab(b.dataset.tab); });
+    b.addEventListener('keydown', function (e) {
+      var i = TABS.indexOf(b.dataset.tab);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var j = (i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length;
+        setTab(TABS[j]); $('tab-' + TABS[j]).focus();
+      }
+    });
+  });
+  $('profileSel').addEventListener('change', function (e) { switchProfile(e.target.value); });
+  $('profileBtn').addEventListener('click', openProfile);
+  $('toastUndo').addEventListener('click', doUndo);
+  $('pubSave').addEventListener('click', savePubDialog);
+  $('citeSave').addEventListener('click', saveCiteDialog);
+  $('pubPending').addEventListener('change', updatePubDialogMode);
+  $('txtCopy').addEventListener('click', function () {
+    var ta = $('txtArea');
+    var done = function () { toast('Скопировано'); };
+    try {
+      navigator.clipboard.writeText(ta.value).then(done, function () { ta.focus(); ta.select(); toast('Выделено — нажмите Ctrl+C'); });
+    } catch (e) { ta.focus(); ta.select(); toast('Выделено — нажмите Ctrl+C'); }
+  });
+  /* Enter in a text field must not close a dialog */
+  document.querySelectorAll('dialog form').forEach(function (f) {
+    f.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || e.target.type === 'checkbox') return;
+      e.preventDefault();
+      if (f.id === 'pubForm') savePubDialog();
+      else if (f.id === 'citeForm') saveCiteDialog();
+      else e.target.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+  initImport();
+  if (STANDALONE) {
+    $('storageHelp').textContent = 'Данные хранятся в этом браузере на этом компьютере: их не видит никто, кроме вас, но они не переносятся на другие устройства и пропадут, если очистить данные сайта в браузере. Регулярно сохраняйте резервную копию в окне «Профиль и данные» — из неё всё восстанавливается за минуту, в том числе на другом компьютере. Таблицу для Excel можно сохранить там же.';
+  }
+  var lastW = window.innerWidth, rt = null;
+  window.addEventListener('resize', function () {
+    if (Math.abs(window.innerWidth - lastW) < 30) return;
+    lastW = window.innerWidth;
+    clearTimeout(rt);
+    rt = setTimeout(function () { if (S.tab === 'analysis' || S.tab === 'history') renderView(); }, 150);
+  });
+
+  var start = (location.hash || '').replace('#', '');
+  setTab(TABS.indexOf(start) !== -1 ? start : 'analysis');
+  renderProfileSelect(); renderBanner();
+  setSaveState('pending');
+
+  Store.connect().then(function (res) {
+    S.loading = false;
+    if (res.mode === 'account') {
+      var remote = normalizeWs(res.remote);
+      if (remote && (!local || (remote.updatedAt || 0) >= (local.updatedAt || 0))) {
+        S.ws = remote; Store.writeLocal(remote);
+      } else if (!S.ws.fresh) {
+        Store.save(S.ws, true);
+      }
+    }
+    if (!S.ws.fresh && recordHistory(P())) Store.save(S.ws);
+    renderAll();
+    setSaveState(Store.mode === 'account' ? 'account' : 'local');
+  }).catch(function () { S.loading = false; setSaveState('local'); });
+
+  if (window.claude && window.claude.use) {
+    window.claude.use('downloads').then(function (dl) { S.dl = dl; }).catch(function () { S.dl = null; });
+  }
+})();
+</script>
+</body>
+</html>
